@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content" android:layout_height="wrap_content">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/kind"
+        android:id="@+id/tag_kind"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toEndOf="@id/tag_kind"
+        android:id="@+id/chapter_name"
+        android:text="daladk"
+        android:textColor="@color/green"/>
+
+
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/nice_date"
+        android:text="aldsjak"
+        android:layout_alignParentEnd="true"
+        android:textColor="@color/green"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toStartOf="@id/nice_date"
+        android:text="@string/time"
+        android:id="@+id/tag_time"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tag_kind"
+        android:textSize="20sp"
+        android:text="asldkdas"
+        android:textColor="@color/black"
+        android:id="@+id/text_title"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/text_title"
+        android:text="@string/author"
+        android:id="@+id/tag_author"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/text_author"
+        android:text="dalkdasl"
+        android:textColor="@color/green"
+        android:layout_toEndOf="@id/tag_author"
+        android:layout_below="@id/text_title"/>
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_below="@id/text_title"
+        android:background="@color/white"
+        android:src="@drawable/ic_star_border_black_24dp"/>
+
+
+
+</RelativeLayout>

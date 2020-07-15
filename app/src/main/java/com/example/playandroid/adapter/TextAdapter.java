@@ -1,5 +1,6 @@
 package com.example.playandroid.adapter;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,15 +35,16 @@ public class TextAdapter extends RecyclerView.Adapter {
             mAuthor = itemView.findViewById(R.id.text_author);
             mChapterName = itemView.findViewById(R.id.chapter_name);
             mNiceDate = itemView.findViewById(R.id.nice_date);
-            mTitle.findViewById(R.id.text_title);
+            mTitle = itemView.findViewById(R.id.text_title);
         }
     }
 
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.linearlayout_item_text, null);
-        return new ViewHolder(view);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.relativelayout_item_text, parent, false);
+        ViewHolder viewHolder = new ViewHolder(view);
+        return viewHolder;
     }
 
     @Override

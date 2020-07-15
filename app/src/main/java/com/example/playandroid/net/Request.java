@@ -6,15 +6,15 @@ public class Request {
     private boolean mIsPost;
     private String mPostData;
 
-    public String getPostData() {
+    String getPostData() {
         return mPostData;
     }
 
-    public String getUrl() {
+    String getUrl() {
         return mUrl;
     }
 
-    public boolean isPost() {
+    boolean isPost() {
         return mIsPost;
     }
 

@@ -1,5 +1,7 @@
 package com.example.playandroid.entity;
 
+import androidx.annotation.NonNull;
+
 public class Text {
     private String mAuthor; // 作者
     private String mChapterName; // 小类别
@@ -57,5 +59,11 @@ public class Text {
 
     public String getTitle() {
         return mTitle;
+    }
+
+    @NonNull
+    @Override
+    public String toString() {
+        return "author is " + mAuthor + ", title is " + mTitle;
     }
 }
