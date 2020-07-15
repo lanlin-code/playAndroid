@@ -38,7 +38,6 @@ public class DBUtil {
                 text.setTitle(title);
                 int id = cursor.getInt(cursor.getColumnIndex(TextKeyManager.ID));
                 text.setId(id);
-                Log.d("TAG", "loadTextFromLocal: " + text.toString());
                 textList.add(text);
             } while (cursor.moveToNext());
         }
@@ -55,10 +54,12 @@ public class DBUtil {
         String sql = "insert into text (author, chapterName, link, niceDate," +
                 " superChapterName, title, del) values(?, ?, ?, ?, ?, ?, ?)";
         for (Text text : texts) {
+
             database.execSQL(sql, new Object[]{text.getAuthor(), text.getChapterName(),
             text.getLink(), text.getNiceDate(), text.getSuperChapterName(), text.getTitle(), 0});
         }
         database.close();
+        Log.d("TAG", "writeToLocal: --------write--------");
     }
 
 }

@@ -14,7 +14,7 @@ public class MyDatabaseHelper extends SQLiteOpenHelper {
 
 
     public static final String DATABASE_NAME = "MyApplication.db";
-    public static final int CURRENT_VERSION = 3;
+    public static final int CURRENT_VERSION = 5;
 
     public MyDatabaseHelper(@Nullable Context context, @Nullable String name, @Nullable SQLiteDatabase.CursorFactory factory, int version) {
         super(context, name, factory, version);

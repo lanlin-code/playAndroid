@@ -62,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
 
     private List<Text> textList = new ArrayList<>();
     private TextAdapter adapter;
-    private int page = 0;
+    private volatile int page = 0;
     private LinearLayout topLayout;
     private LinearLayout bottomLayout;
 
@@ -134,8 +134,11 @@ public class MainActivity extends AppCompatActivity {
                     public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                         super.onScrolled(recyclerView, dx, dy);
                         if (!recyclerView.canScrollVertically(1)) {
+                            // 拉到底部加载更多
                             page ++;
                             setTexts();
+                        } else if (!recyclerView.canScrollVertically(-1)) {
+                            freshText();
                         } else if (dy < 0) {
                             topLayout.setVisibility(View.VISIBLE);
                             bottomLayout.setVisibility(View.VISIBLE);
@@ -160,22 +163,42 @@ public class MainActivity extends AppCompatActivity {
                     List<Text> localText = DBUtil.loadTextFromLocal(MainActivity.this);
                     if (!localText.isEmpty()) {
                         textList.addAll(localText);
-                        Message message = Message.obtain();
-                        message.what = LoadDataManger.LOAD_TEXT_SUCCESS;
-                        mHandler.sendMessage(message);
+                        sendMessageAboutText();
                     }
                 }
                 List<Text> texts = TextPresenter.getTexts(page, textList);
                 if (!texts.isEmpty()) {
                     textList.addAll(texts);
-                    Message message = Message.obtain();
-                    message.what = LoadDataManger.LOAD_TEXT_SUCCESS;
-                    mHandler.sendMessage(message);
+                    sendMessageAboutText();
                     DBUtil.writeToLocal(texts, MainActivity.this);
+                } else {
+                    page ++;
+                    setTexts();
                 }
             }
         });
 
+    }
+
+    public void sendMessageAboutText() {
+        Message message = Message.obtain();
+        message.what = LoadDataManger.LOAD_TEXT_SUCCESS;
+        mHandler.sendMessage(message);
+    }
+
+    // 拉到顶部刷新，将获得的数据放在RecyclerView的最上面
+    public void freshText() {
+        MyThreadPool.execute(new Runnable() {
+            @Override
+            public void run() {
+                List<Text> texts = TextPresenter.getTexts(0, textList);
+                if (!texts.isEmpty()) {
+                    textList.addAll(0, texts);
+                    sendMessageAboutText();
+                    DBUtil.writeToLocal(texts, MainActivity.this);
+                }
+            }
+        });
     }
 
 

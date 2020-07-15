@@ -20,7 +20,7 @@ import java.util.List;
 
 public class TextModel {
 
-    public static List<Text> getTexts(int page, List<Text> textList) {
+    public static synchronized List<Text> getTexts(int page, List<Text> textList) {
         String link = MyService.getHomeTextLink() + page + MyService.getDataType();
         Request request = new Request.Builder().url(link).build();
         Response response = new OkHttpClient().newCall(request).execute();
@@ -39,6 +39,9 @@ public class TextModel {
             }
             if (isExist) iterator.remove();
         }
+        if (!texts.isEmpty()) Log.d("TAG", "getTexts: " + texts.toString());
+        else Log.d("TAG", "getTexts: ----------empty-------------");
+
         return texts;
 
 
