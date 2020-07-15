@@ -13,6 +13,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -22,10 +24,12 @@ import android.widget.LinearLayout;
 
 import com.example.playandroid.R;
 import com.example.playandroid.adapter.TextAdapter;
+import com.example.playandroid.database.MyDatabaseHelper;
 import com.example.playandroid.entity.Text;
 import com.example.playandroid.executor.MyThreadPool;
 import com.example.playandroid.manager.FragmentBroadcastManager;
 import com.example.playandroid.manager.LoadDataManger;
+import com.example.playandroid.manager.TextKeyManager;
 import com.example.playandroid.net.Request;
 import com.example.playandroid.net.RequestBody;
 import com.example.playandroid.presenter.TextPresenter;
@@ -160,6 +164,36 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+
+    }
+
+    private void loadTextsFromLocal() {
+        MyDatabaseHelper helper = new MyDatabaseHelper(this, MyDatabaseHelper.DATABASE_NAME,
+                null, MyDatabaseHelper.CURRENT_VERSION);
+        SQLiteDatabase database = helper.getReadableDatabase();
+        String sql = "select * from text where del = ?" ;
+        Cursor cursor = database.rawQuery(sql, new String[]{"0"});
+        if (cursor.moveToFirst()) {
+            do {
+                Text text = new Text();
+                String author = cursor.getString(cursor.getColumnIndex(TextKeyManager.AUTHOR));
+                text.setAuthor(author);
+                String chapterName = cursor.getString(cursor.getColumnIndex(TextKeyManager.CHAPTER_NAME));
+                text.setChapterName(chapterName);
+                String link = cursor.getString(cursor.getColumnIndex(TextKeyManager.LINK));
+                text.setLink(link);
+                String niceDate = cursor.getString(cursor.getColumnIndex(TextKeyManager.NICE_DATE));
+                text.setNiceDate(niceDate);
+                String superChapterName = cursor.getString(cursor.getColumnIndex(TextKeyManager.SUPER_CHAPTER_NAME));
+                text.setSuperChapterName(superChapterName);
+                String title = cursor.getString(cursor.getColumnIndex(TextKeyManager.TITLE));
+                text.setTitle(title);
+                int id = cursor.getInt(cursor.getColumnIndex(TextKeyManager.ID));
+                text.setId(id);
+                textList.add(text);
+            } while (cursor.moveToNext());
+            cursor.close();
+        }
 
     }
 }

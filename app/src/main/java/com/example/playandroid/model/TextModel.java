@@ -3,6 +3,7 @@ package com.example.playandroid.model;
 import android.util.Log;
 
 import com.example.playandroid.entity.Text;
+import com.example.playandroid.manager.TextKeyManager;
 import com.example.playandroid.net.MyService;
 import com.example.playandroid.net.OkHttpClient;
 import com.example.playandroid.net.Request;
@@ -42,19 +43,19 @@ public class TextModel {
             for (int i = 0; i < array.length(); i ++) {
                 Text text = new Text();
                 JSONObject jsonObject = array.getJSONObject(i);
-                String author = jsonObject.getString("author");
+                String author = jsonObject.getString(TextKeyManager.AUTHOR);
                 text.setAuthor(author);
-                String chapterName = jsonObject.getString("chapterName");
+                String chapterName = jsonObject.getString(TextKeyManager.CHAPTER_NAME);
                 text.setChapterName(chapterName);
-                String link = jsonObject.getString("link");
+                String link = jsonObject.getString(TextKeyManager.LINK);
                 text.setLink(link);
-                String niceDate = jsonObject.getString("niceDate");
+                String niceDate = jsonObject.getString(TextKeyManager.NICE_DATE);
                 text.setNiceDate(niceDate);
-                String superChapterName = jsonObject.getString("superChapterName");
+                String superChapterName = jsonObject.getString(TextKeyManager.SUPER_CHAPTER_NAME);
                 text.setSuperChapterName(superChapterName);
-                String title = jsonObject.getString("title");
+                String title = jsonObject.getString(TextKeyManager.TITLE);
                 text.setTitle(title);
-                int id = jsonObject.getInt("id");
+                int id = jsonObject.getInt(TextKeyManager.ID);
                 text.setId(id);
                 texts.add(text);
             }
