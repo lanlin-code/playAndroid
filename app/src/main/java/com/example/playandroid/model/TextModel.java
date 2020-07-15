@@ -54,6 +54,8 @@ public class TextModel {
                 text.setSuperChapterName(superChapterName);
                 String title = jsonObject.getString("title");
                 text.setTitle(title);
+                int id = jsonObject.getInt("id");
+                text.setId(id);
                 texts.add(text);
             }
         } catch (JSONException e) {

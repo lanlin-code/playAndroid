@@ -9,12 +9,16 @@ public class Text {
     private String mNiceDate; // 时间
     private String mSuperChapterName; // 大类别
     private String mTitle; // 标题
+    private int mId;
 
 
     public void setAuthor(String mAuthor) {
         this.mAuthor = mAuthor;
     }
 
+    public void setId(int mId) {
+        this.mId = mId;
+    }
 
     public void setChapterName(String mChapterName) {
         this.mChapterName = mChapterName;
@@ -47,6 +51,10 @@ public class Text {
 
     public String getLink() {
         return mLink;
+    }
+
+    public int getId() {
+        return mId;
     }
 
     public String getNiceDate() {

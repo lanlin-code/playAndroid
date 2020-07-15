@@ -23,12 +23,14 @@ import android.widget.LinearLayout;
 import com.example.playandroid.R;
 import com.example.playandroid.adapter.TextAdapter;
 import com.example.playandroid.entity.Text;
+import com.example.playandroid.executor.MyThreadPool;
 import com.example.playandroid.manager.FragmentBroadcastManager;
 import com.example.playandroid.manager.LoadDataManger;
 import com.example.playandroid.net.Request;
 import com.example.playandroid.net.RequestBody;
 import com.example.playandroid.presenter.TextPresenter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -53,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    private List<Text> textList;
+    private List<Text> textList = new ArrayList<>();
     private TextAdapter adapter;
     private int page = 0;
     private LinearLayout topLayout;
@@ -111,21 +113,24 @@ public class MainActivity extends AppCompatActivity {
     // 初始化文章页面
     private void initHomeFragment() {
         HomeFragment fragment = (HomeFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_layout);
-//        Log.d("TAG", "initHomeFragment: before");
+
         if (fragment != null) {
-//            Log.d("TAG", "initHomeFragment: fragment not null");
             View view = fragment.getView();
             if (view != null) {
-//                Log.d("TAG", "initHomeFragment: view not null");
                 RecyclerView recyclerView = view.findViewById(R.id.text_list);
                 LinearLayoutManager layoutManager = new LinearLayoutManager(this);
                 recyclerView.setLayoutManager(layoutManager);
                 recyclerView.setAdapter(adapter);
+
+                // 向上滑动，底部菜单栏和顶部搜索栏出现，下滑则消失
                 recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
                     @Override
                     public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                         super.onScrolled(recyclerView, dx, dy);
-                        if (dy < 0) {
+                        if (!recyclerView.canScrollVertically(1)) {
+                            page ++;
+                            setTexts();
+                        } else if (dy < 0) {
                             topLayout.setVisibility(View.VISIBLE);
                             bottomLayout.setVisibility(View.VISIBLE);
                         } else if (dy > 0) {
@@ -134,22 +139,27 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                 });
+
+
             }
         }
     }
 
     // 加载文章
     private void setTexts() {
-        new Thread(new Runnable() {
+
+        MyThreadPool.execute(new Runnable() {
             @Override
             public void run() {
-                textList = TextPresenter.getTexts(page);
-                if (textList != null) {
+                List<Text> texts = TextPresenter.getTexts(page);
+                if (texts != null) {
+                    textList.addAll(texts);
                     Message message = Message.obtain();
                     message.what = LoadDataManger.LOAD_TEXT_SUCCESS;
                     mHandler.sendMessage(message);
                 }
             }
-        }).start();
+        });
+
     }
 }
