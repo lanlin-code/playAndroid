@@ -1,5 +1,6 @@
 package com.example.playandroid.model;
 
+import android.content.Context;
 import android.util.Log;
 
 import com.example.playandroid.entity.Text;
@@ -14,16 +15,37 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public class TextModel {
-    public static List<Text> getTexts(int page) {
+
+    public static List<Text> getTexts(int page, List<Text> textList) {
         String link = MyService.getHomeTextLink() + page + MyService.getDataType();
         Request request = new Request.Builder().url(link).build();
         Response response = new OkHttpClient().newCall(request).execute();
         String data = response.body().toString();
-        return parseData(data);
+        List<Text> texts = parseData(data);
+        Iterator<Text> iterator = texts.iterator();
+        // 检查本地是否有该条数据
+        while (iterator.hasNext()) {
+            Text loadText = iterator.next();
+            boolean isExist = false;
+            for (Text text : textList) {
+                if (loadText.getId() == text.getId()) {
+                    isExist = true;
+                    break;
+                }
+            }
+            if (isExist) iterator.remove();
+        }
+        return texts;
+
+
     }
+
+
+
 
 
     /**

@@ -24,6 +24,7 @@ import android.widget.LinearLayout;
 
 import com.example.playandroid.R;
 import com.example.playandroid.adapter.TextAdapter;
+import com.example.playandroid.database.DBUtil;
 import com.example.playandroid.database.MyDatabaseHelper;
 import com.example.playandroid.entity.Text;
 import com.example.playandroid.executor.MyThreadPool;
@@ -88,6 +89,7 @@ public class MainActivity extends AppCompatActivity {
         topLayout = findViewById(R.id.top_layout);
         bottomLayout = findViewById(R.id.bottom_layout);
         replaceFragment(new HomeFragment());
+
         setTexts();
     }
 
@@ -151,49 +153,32 @@ public class MainActivity extends AppCompatActivity {
 
     // 加载文章
     private void setTexts() {
-
         MyThreadPool.execute(new Runnable() {
             @Override
             public void run() {
-                List<Text> texts = TextPresenter.getTexts(page);
-                if (texts != null) {
+                if (textList.isEmpty()) {
+                    List<Text> localText = DBUtil.loadTextFromLocal(MainActivity.this);
+                    if (!localText.isEmpty()) {
+                        textList.addAll(localText);
+                        Message message = Message.obtain();
+                        message.what = LoadDataManger.LOAD_TEXT_SUCCESS;
+                        mHandler.sendMessage(message);
+                    }
+                }
+                List<Text> texts = TextPresenter.getTexts(page, textList);
+                if (!texts.isEmpty()) {
                     textList.addAll(texts);
                     Message message = Message.obtain();
                     message.what = LoadDataManger.LOAD_TEXT_SUCCESS;
                     mHandler.sendMessage(message);
+                    DBUtil.writeToLocal(texts, MainActivity.this);
                 }
             }
         });
 
     }
 
-    private void loadTextsFromLocal() {
-        MyDatabaseHelper helper = new MyDatabaseHelper(this, MyDatabaseHelper.DATABASE_NAME,
-                null, MyDatabaseHelper.CURRENT_VERSION);
-        SQLiteDatabase database = helper.getReadableDatabase();
-        String sql = "select * from text where del = ?" ;
-        Cursor cursor = database.rawQuery(sql, new String[]{"0"});
-        if (cursor.moveToFirst()) {
-            do {
-                Text text = new Text();
-                String author = cursor.getString(cursor.getColumnIndex(TextKeyManager.AUTHOR));
-                text.setAuthor(author);
-                String chapterName = cursor.getString(cursor.getColumnIndex(TextKeyManager.CHAPTER_NAME));
-                text.setChapterName(chapterName);
-                String link = cursor.getString(cursor.getColumnIndex(TextKeyManager.LINK));
-                text.setLink(link);
-                String niceDate = cursor.getString(cursor.getColumnIndex(TextKeyManager.NICE_DATE));
-                text.setNiceDate(niceDate);
-                String superChapterName = cursor.getString(cursor.getColumnIndex(TextKeyManager.SUPER_CHAPTER_NAME));
-                text.setSuperChapterName(superChapterName);
-                String title = cursor.getString(cursor.getColumnIndex(TextKeyManager.TITLE));
-                text.setTitle(title);
-                int id = cursor.getInt(cursor.getColumnIndex(TextKeyManager.ID));
-                text.setId(id);
-                textList.add(text);
-            } while (cursor.moveToNext());
-            cursor.close();
-        }
 
-    }
+
+
 }
