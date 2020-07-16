@@ -18,9 +18,12 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.text.Layout;
 import android.util.Log;
 import android.view.View;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
+import android.widget.Toast;
 
 import com.example.playandroid.R;
 import com.example.playandroid.adapter.TextAdapter;
@@ -52,7 +55,6 @@ public class MainActivity extends AppCompatActivity {
             int message = intent.getIntExtra(FragmentBroadcastManager.BROADCAST_MESSAGE_KEY, 0);
             switch (message) {
                 case FragmentBroadcastManager.TEXT_FRAGMENT_FINISH:
-                    Log.d("TAG", "onReceive: ");
                     initHomeFragment();
                     break;
 
@@ -62,9 +64,10 @@ public class MainActivity extends AppCompatActivity {
 
     private List<Text> textList = new ArrayList<>();
     private TextAdapter adapter;
-    private volatile int page = 0;
+    private int page = 0;
     private LinearLayout topLayout;
     private LinearLayout bottomLayout;
+    private RelativeLayout loadLayout;
 
 
     private Handler mHandler = new Handler(new Handler.Callback() {
@@ -74,6 +77,15 @@ public class MainActivity extends AppCompatActivity {
                 case LoadDataManger.LOAD_TEXT_SUCCESS:
                     adapter = new TextAdapter(textList);
                     initHomeFragment();
+                    break;
+                case LoadDataManger.END_FRESH:
+                    Toast.makeText(MainActivity.this, "刷新完成", Toast.LENGTH_SHORT).show();
+                    break;
+                case LoadDataManger.START_LOADING:
+                    setRelativeLayoutVisible(loadLayout);
+                    break;
+                case LoadDataManger.END_LOADING:
+                    setRelativeLayoutGone(loadLayout);
                     break;
             }
             return false;
@@ -88,9 +100,10 @@ public class MainActivity extends AppCompatActivity {
         if (actionBar != null) actionBar.hide();
         topLayout = findViewById(R.id.top_layout);
         bottomLayout = findViewById(R.id.bottom_layout);
+        loadLayout = findViewById(R.id.loading_layout);
         replaceFragment(new HomeFragment());
-
-        setTexts();
+        loadTextFromLocal();
+        freshText();
     }
 
     @Override
@@ -119,7 +132,6 @@ public class MainActivity extends AppCompatActivity {
     // 初始化文章页面
     private void initHomeFragment() {
         HomeFragment fragment = (HomeFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_layout);
-
         if (fragment != null) {
             View view = fragment.getView();
             if (view != null) {
@@ -127,7 +139,6 @@ public class MainActivity extends AppCompatActivity {
                 LinearLayoutManager layoutManager = new LinearLayoutManager(this);
                 recyclerView.setLayoutManager(layoutManager);
                 recyclerView.setAdapter(adapter);
-
                 // 向上滑动，底部菜单栏和顶部搜索栏出现，下滑则消失
                 recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
                     @Override
@@ -154,35 +165,38 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void setRelativeLayoutVisible(RelativeLayout layout) {
+        if (layout.getVisibility() != View.VISIBLE) layout.setVisibility(View.VISIBLE);
+    }
+
+    private void setRelativeLayoutGone(RelativeLayout layout) {
+        if (layout.getVisibility() == View.VISIBLE) layout.setVisibility(View.GONE);
+    }
+
     // 加载文章
     private void setTexts() {
         MyThreadPool.execute(new Runnable() {
             @Override
             public void run() {
-                if (textList.isEmpty()) {
-                    List<Text> localText = DBUtil.loadTextFromLocal(MainActivity.this);
-                    if (!localText.isEmpty()) {
-                        textList.addAll(localText);
-                        sendMessageAboutText();
-                    }
-                }
+                sendMessageAboutText(LoadDataManger.START_LOADING);
                 List<Text> texts = TextPresenter.getTexts(page, textList);
                 if (!texts.isEmpty()) {
                     textList.addAll(texts);
-                    sendMessageAboutText();
+                    sendMessageAboutText(LoadDataManger.LOAD_TEXT_SUCCESS);
                     DBUtil.writeToLocal(texts, MainActivity.this);
                 } else {
                     page ++;
                     setTexts();
                 }
+                sendMessageAboutText(LoadDataManger.END_LOADING);
             }
         });
 
     }
 
-    public void sendMessageAboutText() {
+    public void sendMessageAboutText(int code) {
         Message message = Message.obtain();
-        message.what = LoadDataManger.LOAD_TEXT_SUCCESS;
+        message.what = code;
         mHandler.sendMessage(message);
     }
 
@@ -194,12 +208,31 @@ public class MainActivity extends AppCompatActivity {
                 List<Text> texts = TextPresenter.getTexts(0, textList);
                 if (!texts.isEmpty()) {
                     textList.addAll(0, texts);
-                    sendMessageAboutText();
+                    sendMessageAboutText(LoadDataManger.END_FRESH);
+                    sendMessageAboutText(LoadDataManger.LOAD_TEXT_SUCCESS);
                     DBUtil.writeToLocal(texts, MainActivity.this);
                 }
             }
         });
     }
+
+    public void loadTextFromLocal() {
+        MyThreadPool.execute(new Runnable() {
+            @Override
+            public void run() {
+                if (textList.isEmpty()) {
+                    List<Text> localText = DBUtil.loadTextFromLocal(MainActivity.this);
+                    if (!localText.isEmpty()) {
+                        textList.addAll(localText);
+                        sendMessageAboutText(LoadDataManger.LOAD_TEXT_SUCCESS);
+                    }
+                }
+            }
+        });
+
+    }
+
+
 
 
 
