@@ -19,4 +19,8 @@ public class MyService {
     public static String getKnowledgeSystemLink() {
         return host + "tree" + getDataType();
     }
+
+    public static String getCategoryLink() {
+        return host + "project/tree" + getDataType();
+    }
 }

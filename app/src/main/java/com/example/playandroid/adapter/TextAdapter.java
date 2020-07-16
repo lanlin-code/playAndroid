@@ -1,6 +1,5 @@
 package com.example.playandroid.adapter;
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -42,7 +41,7 @@ public class TextAdapter extends RecyclerView.Adapter {
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.relativelayout_item_text, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.relativelayout_text_item, parent, false);
         return new ViewHolder(view);
     }
 
