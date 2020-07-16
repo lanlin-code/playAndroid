@@ -24,12 +24,15 @@ import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.example.playandroid.R;
+import com.example.playandroid.adapter.KnowledgeSystemAdapter;
 import com.example.playandroid.adapter.TextAdapter;
 import com.example.playandroid.database.DBUtil;
+import com.example.playandroid.entity.KnowledgeSystem;
 import com.example.playandroid.entity.Text;
 import com.example.playandroid.executor.MyThreadPool;
 import com.example.playandroid.manager.FragmentValuesManager;
 import com.example.playandroid.manager.LoadDataManger;
+import com.example.playandroid.presenter.KnowledgeSystemPresenter;
 import com.example.playandroid.presenter.TextPresenter;
 
 import java.util.ArrayList;
@@ -37,23 +40,23 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
-    /*由于activity动态加载fragment时，fragment的onCreateView
-     *方法总在activity中调用replace的那个方法之后，且监听事件需要
-     * activity中的数据和控制主布局中某些控件，故用广播来为fragment
-     * 布局中的控件添加监听事件
+    /*
+     *由于活动加载碎片的过程总在活动的那个调用了replace的方法之后，
+     * 且fragment某些控件需要活动中的数据和对活动的某些控件进行操作
+     * 所以用广播来监听fragment创建
      *
      */
-    private BroadcastReceiver receiver = new BroadcastReceiver() {
+    BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            int message = intent.getIntExtra(FragmentValuesManager.BROADCAST_MESSAGE_KEY, 0);
-            switch (message) {
+            int code = intent.getIntExtra(FragmentValuesManager.BROADCAST_MESSAGE_KEY, FragmentValuesManager.FAIL);
+            switch (code) {
                 case FragmentValuesManager.TEXT_FRAGMENT:
                     initHomeFragment();
                     break;
                 case FragmentValuesManager.KNOWLEDGE_FRAGMENT:
-
-
+                    if (haveInitKnowledge) initKnowledgeFragment();
+                    break;
             }
         }
     };
@@ -65,9 +68,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private LinearLayout bottomLayout;
     private RelativeLayout loadLayout;
     private RelativeLayout freshLayout;
-//    private boolean canFresh = true;
     private int fragmentCode = FragmentValuesManager.TEXT_FRAGMENT;
-
+    private List<KnowledgeSystem> knowledgeSystemList = new ArrayList<>();
+    private KnowledgeSystemAdapter knowledgeSystemAdapter;
+    private boolean haveInitKnowledge = false;
 
 
     private Handler mHandler = new Handler(new Handler.Callback() {
@@ -83,13 +87,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     break;
                 case LoadDataManger.END_FRESH:
                     setRelativeLayoutGone(freshLayout);
-//                    Toast.makeText(MainActivity.this, "刷新完成", Toast.LENGTH_SHORT).show();
                     break;
                 case LoadDataManger.START_LOADING:
                     setRelativeLayoutVisible(loadLayout);
                     break;
                 case LoadDataManger.END_LOADING:
                     setRelativeLayoutGone(loadLayout);
+                    break;
+                case LoadDataManger.LOAD_KNOWLEDGE_SYSTEM_SUCCESS:
+                    knowledgeSystemAdapter = new KnowledgeSystemAdapter(knowledgeSystemList);
+                    initKnowledgeFragment();
+                    haveInitKnowledge = true;
                     break;
             }
             return false;
@@ -119,10 +127,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onResume() {
         super.onResume();
-        IntentFilter filter = new IntentFilter();
-        filter.addAction("com.example.playandroid.FRAGMENT_LAYOUT_FINISH");
-        registerReceiver(receiver, filter);
-
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(FragmentValuesManager.ACTION);
+        registerReceiver(receiver, intentFilter);
     }
 
     @Override
@@ -145,6 +152,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (fragment != null) {
             View view = fragment.getView();
             if (view != null) {
+
                 RecyclerView recyclerView = view.findViewById(R.id.text_list);
                 LinearLayoutManager layoutManager = new LinearLayoutManager(this);
                 recyclerView.setLayoutManager(layoutManager);
@@ -170,6 +178,56 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         }
     }
+
+    // 加载知识体系数据
+    private void loadKnowledgeSystems() {
+        MyThreadPool.execute(new Runnable() {
+            @Override
+            public void run() {
+                sendMessageAboutText(LoadDataManger.START_FRESH);
+                if (knowledgeSystemList.isEmpty()) {
+                    List<KnowledgeSystem> data = KnowledgeSystemPresenter.getKnowledgeSystems();
+                    sendMessageAboutText(LoadDataManger.END_FRESH);
+                    if (!data.isEmpty()) {
+                        knowledgeSystemList.addAll(data);
+                        sendMessageAboutText(LoadDataManger.LOAD_KNOWLEDGE_SYSTEM_SUCCESS);
+                    }
+                }
+
+            }
+        });
+    }
+
+    // 初始化知识体系fragment
+    private void initKnowledgeFragment() {
+        KnowledgeFragment fragment = (KnowledgeFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_layout);
+        if (fragment != null) {
+            View view = fragment.getView();
+            if (view != null) {
+                RecyclerView recyclerView = view.findViewById(R.id.knowledge_system_list);
+                LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+                recyclerView.setLayoutManager(layoutManager);
+                recyclerView.setAdapter(knowledgeSystemAdapter);
+                recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+                    @Override
+                    public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                        super.onScrolled(recyclerView, dx, dy);
+                        if (dy < 0) {
+                            topLayout.setVisibility(View.VISIBLE);
+                            bottomLayout.setVisibility(View.VISIBLE);
+                            if (!recyclerView.canScrollVertically(-1)) loadKnowledgeSystems();
+                        } else if (dy > 0) {
+                            topLayout.setVisibility(View.GONE);
+                            bottomLayout.setVisibility(View.GONE);
+                        }
+                    }
+                });
+            }
+         }
+
+    }
+
+
 
     private void setRelativeLayoutVisible(RelativeLayout layout) {
         if (layout.getVisibility() != View.VISIBLE) layout.setVisibility(View.VISIBLE);
@@ -251,6 +309,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.knowledge_button:
                 if (!isLastClickedButton(FragmentValuesManager.KNOWLEDGE_FRAGMENT)) {
                     replaceFragment(new KnowledgeFragment());
+                    if (knowledgeSystemList.isEmpty()) loadKnowledgeSystems();
                     fragmentCode = FragmentValuesManager.KNOWLEDGE_FRAGMENT;
                 }
         }

@@ -15,4 +15,8 @@ public class MyService {
     public static String getDataType() {
         return "/json";
     }
+
+    public static String getKnowledgeSystemLink() {
+        return host + "tree" + getDataType();
+    }
 }

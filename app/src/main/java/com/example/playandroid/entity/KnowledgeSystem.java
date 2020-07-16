@@ -9,8 +9,25 @@ public class KnowledgeSystem implements Parcelable {
     private String mName;
     private List<Knowledge> mKnowledgeList;
 
+    public KnowledgeSystem() {
+
+    }
+
+
     protected KnowledgeSystem(Parcel in) {
         mName = in.readString();
+        mKnowledgeList = in.createTypedArrayList(Knowledge.CREATOR);
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(mName);
+        dest.writeTypedList(mKnowledgeList);
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
     }
 
     public static final Creator<KnowledgeSystem> CREATOR = new Creator<KnowledgeSystem>() {
@@ -41,13 +58,5 @@ public class KnowledgeSystem implements Parcelable {
         return mName;
     }
 
-    @Override
-    public int describeContents() {
-        return 0;
-    }
 
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(mName);
-    }
 }

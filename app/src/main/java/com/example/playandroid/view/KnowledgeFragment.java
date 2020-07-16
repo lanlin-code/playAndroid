@@ -1,5 +1,6 @@
 package com.example.playandroid.view;
 
+
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -8,6 +9,7 @@ import android.view.ViewGroup;
 
 import com.example.playandroid.R;
 import com.example.playandroid.manager.FragmentValuesManager;
+
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -20,10 +22,10 @@ public class KnowledgeFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_knowledge_system, container, false);
-        Intent intent = new Intent("com.example.playandroid.FRAGMENT_LAYOUT_FINISH");
+        Intent intent = new Intent(FragmentValuesManager.ACTION);
         intent.putExtra(FragmentValuesManager.BROADCAST_MESSAGE_KEY, FragmentValuesManager.KNOWLEDGE_FRAGMENT);
-        FragmentActivity fragmentActivity = getActivity();
-        if (fragmentActivity != null) fragmentActivity.sendBroadcast(intent);
+        FragmentActivity activity = getActivity();
+        if (activity != null) activity.sendBroadcast(intent);
         return view;
     }
 }
