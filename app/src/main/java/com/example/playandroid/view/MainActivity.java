@@ -62,7 +62,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private LinearLayout topLayout;
     private LinearLayout bottomLayout;
     private RelativeLayout loadLayout;
-    private boolean canFresh = true;
+    private RelativeLayout freshLayout;
+//    private boolean canFresh = true;
     private int fragmentCode = FragmentValuesManager.TEXT_FRAGMENT;
 
 
@@ -75,8 +76,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     adapter = new TextAdapter(textList);
                     initHomeFragment();
                     break;
+                case LoadDataManger.START_FRESH:
+                    setRelativeLayoutVisible(freshLayout);
+                    break;
                 case LoadDataManger.END_FRESH:
-                    Toast.makeText(MainActivity.this, "刷新完成", Toast.LENGTH_SHORT).show();
+                    setRelativeLayoutGone(freshLayout);
+//                    Toast.makeText(MainActivity.this, "刷新完成", Toast.LENGTH_SHORT).show();
                     break;
                 case LoadDataManger.START_LOADING:
                     setRelativeLayoutVisible(loadLayout);
@@ -98,6 +103,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         topLayout = findViewById(R.id.top_layout);
         bottomLayout = findViewById(R.id.bottom_layout);
         loadLayout = findViewById(R.id.loading_layout);
+        freshLayout = findViewById(R.id.fresh_layout);
         Button home = findViewById(R.id.home_button);
         Button knowledgeSystem = findViewById(R.id.knowledge_button);
         Button item = findViewById(R.id.item_button);
@@ -146,20 +152,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     @Override
                     public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                         super.onScrolled(recyclerView, dx, dy);
-                        if (!recyclerView.canScrollVertically(1)) {
-                            // 拉到底部加载更多
-                            page ++;
-                            setTexts();
-                        } else if (!recyclerView.canScrollVertically(-1)) {
-                            if (canFresh) freshText();
-                        } else if (dy < 0) {
-                            canFresh = true;
+                        if (dy < 0) {
                             topLayout.setVisibility(View.VISIBLE);
                             bottomLayout.setVisibility(View.VISIBLE);
+                            if (!recyclerView.canScrollVertically(-1)) freshText();
                         } else if (dy > 0) {
-                            canFresh = true;
                             topLayout.setVisibility(View.GONE);
                             bottomLayout.setVisibility(View.GONE);
+                            if (!recyclerView.canScrollVertically(1)) setTexts();
                         }
                     }
                 });
@@ -206,7 +206,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     // 拉到顶部刷新，将获得的数据放在RecyclerView的最上面
     public void freshText() {
-        canFresh = false;
         Log.d("TAG", "freshText: ");
         MyThreadPool.execute(new Runnable() {
             @Override
@@ -218,7 +217,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         sendMessageAboutText(LoadDataManger.LOAD_TEXT_SUCCESS);
                     }
                 }
+                sendMessageAboutText(LoadDataManger.START_FRESH);
                 List<Text> texts = TextPresenter.getTexts(0, textList);
+                sendMessageAboutText(LoadDataManger.END_FRESH);
                 if (!texts.isEmpty()) {
                     textList.addAll(0, texts);
                     sendMessageAboutText(LoadDataManger.END_FRESH);

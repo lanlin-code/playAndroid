@@ -27,8 +27,6 @@ public class TextModel {
         String data = response.body().toString();
         if (textList.isEmpty()) Log.d("TAG", "getTexts: ----------params is empty-------");
         else Log.d("TAG", "getTexts: --------params not null");
-        for (Text text : textList) Log.d("TAG", "getTexts: title is " + text.getTitle() +
-                ", id is " + text.getId());
         Log.d("TAG", "getTexts:------------------------ ");
         List<Text> texts = parseData(data);
         Iterator<Text> iterator = texts.iterator();
