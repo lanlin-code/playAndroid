@@ -152,7 +152,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (fragment != null) {
             View view = fragment.getView();
             if (view != null) {
-
                 RecyclerView recyclerView = view.findViewById(R.id.text_list);
                 LinearLayoutManager layoutManager = new LinearLayoutManager(this);
                 recyclerView.setLayoutManager(layoutManager);
@@ -173,8 +172,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         }
                     }
                 });
-
-
             }
         }
     }
@@ -193,7 +190,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         sendMessageAboutText(LoadDataManger.LOAD_KNOWLEDGE_SYSTEM_SUCCESS);
                     }
                 }
-
             }
         });
     }
@@ -224,9 +220,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 });
             }
          }
-
     }
-
 
 
     private void setRelativeLayoutVisible(RelativeLayout layout) {
@@ -266,7 +260,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     // 拉到顶部刷新，将获得的数据放在RecyclerView的最上面
     public void freshText() {
-        Log.d("TAG", "freshText: ");
         MyThreadPool.execute(new Runnable() {
             @Override
             public void run() {
@@ -290,12 +283,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
     }
 
-
-
     private boolean isLastClickedButton(int code) {
         return code == fragmentCode;
     }
-
 
     @Override
     public void onClick(View v) {
