@@ -7,7 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.playandroid.R;
-import com.example.playandroid.manager.FragmentBroadcastManager;
+import com.example.playandroid.manager.FragmentValuesManager;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -20,7 +20,7 @@ public class HomeFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_home_show_all_text, container, false);
         Intent intent = new Intent("com.example.playandroid.FRAGMENT_LAYOUT_FINISH");
-        intent.putExtra(FragmentBroadcastManager.BROADCAST_MESSAGE_KEY, FragmentBroadcastManager.TEXT_FRAGMENT_FINISH);
+        intent.putExtra(FragmentValuesManager.BROADCAST_MESSAGE_KEY, FragmentValuesManager.TEXT_FRAGMENT);
         FragmentActivity fragmentActivity = getActivity();
         if (fragmentActivity != null) fragmentActivity.sendBroadcast(intent);
         return view;

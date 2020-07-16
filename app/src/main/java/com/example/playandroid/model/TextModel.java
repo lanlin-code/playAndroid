@@ -25,6 +25,11 @@ public class TextModel {
         Request request = new Request.Builder().url(link).build();
         Response response = new OkHttpClient().newCall(request).execute();
         String data = response.body().toString();
+        if (textList.isEmpty()) Log.d("TAG", "getTexts: ----------params is empty-------");
+        else Log.d("TAG", "getTexts: --------params not null");
+        for (Text text : textList) Log.d("TAG", "getTexts: title is " + text.getTitle() +
+                ", id is " + text.getId());
+        Log.d("TAG", "getTexts:------------------------ ");
         List<Text> texts = parseData(data);
         Iterator<Text> iterator = texts.iterator();
         // 检查本地是否有该条数据
@@ -39,8 +44,7 @@ public class TextModel {
             }
             if (isExist) iterator.remove();
         }
-        if (!texts.isEmpty()) Log.d("TAG", "getTexts: " + texts.toString());
-        else Log.d("TAG", "getTexts: ----------empty-------------");
+        if (texts.isEmpty()) Log.d("TAG", "getTexts: ----return is empty-----");
 
         return texts;
 

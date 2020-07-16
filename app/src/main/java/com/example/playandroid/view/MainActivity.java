@@ -13,14 +13,12 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.text.Layout;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
@@ -28,20 +26,16 @@ import android.widget.Toast;
 import com.example.playandroid.R;
 import com.example.playandroid.adapter.TextAdapter;
 import com.example.playandroid.database.DBUtil;
-import com.example.playandroid.database.MyDatabaseHelper;
 import com.example.playandroid.entity.Text;
 import com.example.playandroid.executor.MyThreadPool;
-import com.example.playandroid.manager.FragmentBroadcastManager;
+import com.example.playandroid.manager.FragmentValuesManager;
 import com.example.playandroid.manager.LoadDataManger;
-import com.example.playandroid.manager.TextKeyManager;
-import com.example.playandroid.net.Request;
-import com.example.playandroid.net.RequestBody;
 import com.example.playandroid.presenter.TextPresenter;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     /*由于activity动态加载fragment时，fragment的onCreateView
      *方法总在activity中调用replace的那个方法之后，且监听事件需要
@@ -52,9 +46,9 @@ public class MainActivity extends AppCompatActivity {
     private BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            int message = intent.getIntExtra(FragmentBroadcastManager.BROADCAST_MESSAGE_KEY, 0);
+            int message = intent.getIntExtra(FragmentValuesManager.BROADCAST_MESSAGE_KEY, 0);
             switch (message) {
-                case FragmentBroadcastManager.TEXT_FRAGMENT_FINISH:
+                case FragmentValuesManager.TEXT_FRAGMENT:
                     initHomeFragment();
                     break;
 
@@ -68,6 +62,9 @@ public class MainActivity extends AppCompatActivity {
     private LinearLayout topLayout;
     private LinearLayout bottomLayout;
     private RelativeLayout loadLayout;
+    private boolean canFresh = true;
+    private int fragmentCode = FragmentValuesManager.TEXT_FRAGMENT;
+
 
 
     private Handler mHandler = new Handler(new Handler.Callback() {
@@ -101,8 +98,13 @@ public class MainActivity extends AppCompatActivity {
         topLayout = findViewById(R.id.top_layout);
         bottomLayout = findViewById(R.id.bottom_layout);
         loadLayout = findViewById(R.id.loading_layout);
+        Button home = findViewById(R.id.home_button);
+        Button knowledgeSystem = findViewById(R.id.knowledge_button);
+        Button item = findViewById(R.id.item_button);
+        home.setOnClickListener(this);
+        knowledgeSystem.setOnClickListener(this);
+        item.setOnClickListener(this);
         replaceFragment(new HomeFragment());
-        loadTextFromLocal();
         freshText();
     }
 
@@ -149,11 +151,13 @@ public class MainActivity extends AppCompatActivity {
                             page ++;
                             setTexts();
                         } else if (!recyclerView.canScrollVertically(-1)) {
-                            freshText();
+                            if (canFresh) freshText();
                         } else if (dy < 0) {
+                            canFresh = true;
                             topLayout.setVisibility(View.VISIBLE);
                             bottomLayout.setVisibility(View.VISIBLE);
                         } else if (dy > 0) {
+                            canFresh = true;
                             topLayout.setVisibility(View.GONE);
                             bottomLayout.setVisibility(View.GONE);
                         }
@@ -202,9 +206,18 @@ public class MainActivity extends AppCompatActivity {
 
     // 拉到顶部刷新，将获得的数据放在RecyclerView的最上面
     public void freshText() {
+        canFresh = false;
+        Log.d("TAG", "freshText: ");
         MyThreadPool.execute(new Runnable() {
             @Override
             public void run() {
+                if (textList.isEmpty()) {
+                    List<Text> localText = DBUtil.loadTextFromLocal(MainActivity.this);
+                    if (!localText.isEmpty()) {
+                        textList.addAll(localText);
+                        sendMessageAboutText(LoadDataManger.LOAD_TEXT_SUCCESS);
+                    }
+                }
                 List<Text> texts = TextPresenter.getTexts(0, textList);
                 if (!texts.isEmpty()) {
                     textList.addAll(0, texts);
@@ -216,25 +229,22 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    public void loadTextFromLocal() {
-        MyThreadPool.execute(new Runnable() {
-            @Override
-            public void run() {
-                if (textList.isEmpty()) {
-                    List<Text> localText = DBUtil.loadTextFromLocal(MainActivity.this);
-                    if (!localText.isEmpty()) {
-                        textList.addAll(localText);
-                        sendMessageAboutText(LoadDataManger.LOAD_TEXT_SUCCESS);
-                    }
-                }
-            }
-        });
 
+
+    private boolean isLastClickedButton(int code) {
+        return code == fragmentCode;
     }
 
 
-
-
-
-
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.home_button:
+               if (!isLastClickedButton(FragmentValuesManager.TEXT_FRAGMENT)) {
+                   replaceFragment(new HomeFragment());
+                   fragmentCode = FragmentValuesManager.TEXT_FRAGMENT;
+               }
+               break;
+        }
+    }
 }

@@ -112,6 +112,7 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:text="@string/item"
+            android:id="@+id/item_button"
             android:drawableTop="@drawable/ic_folder_black_24dp"
             android:background="@color/white"/>
 

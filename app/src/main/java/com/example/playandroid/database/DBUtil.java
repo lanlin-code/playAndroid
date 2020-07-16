@@ -52,11 +52,11 @@ public class DBUtil {
                 null, MyDatabaseHelper.CURRENT_VERSION);
         SQLiteDatabase database = helper.getWritableDatabase();
         String sql = "insert into text (author, chapterName, link, niceDate," +
-                " superChapterName, title, del) values(?, ?, ?, ?, ?, ?, ?)";
+                " superChapterName, title, del, id) values(?, ?, ?, ?, ?, ?, ?, ?)";
         for (Text text : texts) {
 
             database.execSQL(sql, new Object[]{text.getAuthor(), text.getChapterName(),
-            text.getLink(), text.getNiceDate(), text.getSuperChapterName(), text.getTitle(), 0});
+            text.getLink(), text.getNiceDate(), text.getSuperChapterName(), text.getTitle(), 0, text.getId()});
         }
         database.close();
         Log.d("TAG", "writeToLocal: --------write--------");
