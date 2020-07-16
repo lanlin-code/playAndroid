@@ -51,6 +51,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 case FragmentValuesManager.TEXT_FRAGMENT:
                     initHomeFragment();
                     break;
+                case FragmentValuesManager.KNOWLEDGE_FRAGMENT:
+
 
             }
         }
@@ -246,6 +248,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                    fragmentCode = FragmentValuesManager.TEXT_FRAGMENT;
                }
                break;
+            case R.id.knowledge_button:
+                if (!isLastClickedButton(FragmentValuesManager.KNOWLEDGE_FRAGMENT)) {
+                    replaceFragment(new KnowledgeFragment());
+                    fragmentCode = FragmentValuesManager.KNOWLEDGE_FRAGMENT;
+                }
         }
     }
 }
