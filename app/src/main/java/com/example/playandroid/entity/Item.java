@@ -1,5 +1,7 @@
 package com.example.playandroid.entity;
 
+import androidx.annotation.NonNull;
+
 public class Item {
     private String mAuthor;
     private String mDescription;
@@ -63,5 +65,11 @@ public class Item {
 
     public int getId() {
         return mId;
+    }
+
+    @NonNull
+    @Override
+    public String toString() {
+        return "title is " + mTitle + ", id is " + mId;
     }
 }

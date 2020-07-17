@@ -11,7 +11,11 @@ public class CategoryPresenter {
         return CategoryModel.getCategory();
     }
 
+    public static List<Item> loadCategory(Category category) {
+        return CategoryModel.loadCategory(category, category.getCurrentPage());
+    }
+
     public static List<Item> freshCategory(Category category) {
-        return CategoryModel.freshCategory(category);
+        return CategoryModel.loadCategory(category, 1);
     }
 }

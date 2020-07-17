@@ -5,12 +5,16 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Environment;
 import android.os.Handler;
+import android.provider.MediaStore;
+import android.util.Log;
 import android.util.LruCache;
 import android.widget.ImageView;
 
 import com.example.playandroid.executor.MyThreadPool;
 import com.example.playandroid.net.OkHttpClient;
 import com.example.playandroid.net.Response;
+import com.example.playandroid.util.MD5Util;
+import com.example.playandroid.util.ThreadAdjustUtil;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -27,7 +31,6 @@ public class ImageLoader {
     private LruCache<String, Bitmap> mCache;
     // 存标记，防止错位
     private Map<ImageView, String> mTags = new LinkedHashMap<>();
-    private Handler mHandler;
     public ImageLoader(int maxSize) {
         mCache = new LruCache<String, Bitmap>(maxSize) {
             @Override
@@ -35,7 +38,6 @@ public class ImageLoader {
                 return value.getRowBytes()*value.getHeight();
             }
         };
-        mHandler = new Handler();
     }
 
     public void display(String url, ImageView imageView) {
@@ -65,6 +67,7 @@ public class ImageLoader {
     }
 
     private File getCacheFile(String url, Context context) {
+        String name = MD5Util.encode(url);
         // 获取当前状态
         String state = Environment.getExternalStorageState();
         if (Environment.MEDIA_MOUNTED.equals(state)) {
@@ -73,11 +76,11 @@ public class ImageLoader {
                     "/Android/data/" + context.getPackageName() + "/icon");
             // 如果文件不存在则创建
             if (!dir.exists()) dir.mkdirs();
-            return new File(dir, url);
+            return new File(dir, name);
         } else {
             File dir = new File(context.getCacheDir(), "/icon");
             if (!dir.exists()) dir.mkdirs();
-            return new File(dir, url);
+            return new File(dir, name);
         }
     }
 
@@ -105,11 +108,11 @@ public class ImageLoader {
                 connection = (HttpURLConnection) link.openConnection();
                 is = connection.getInputStream();
                 final Bitmap bitmap = BitmapFactory.decodeStream(is);
-                saveToLocal(bitmap, url, imageView.getContext());
+//                saveToLocal(bitmap, url, imageView.getContext());
                 mCache.put(url, bitmap);
                 String current = mTags.get(imageView);
                 if (url.equals(current)) {
-                    mHandler.post(new Runnable() {
+                    ThreadAdjustUtil.post(new Runnable() {
                         @Override
                         public void run() {
                             display(url, imageView);
@@ -126,6 +129,7 @@ public class ImageLoader {
     private void saveToLocal(Bitmap bitmap, String url, Context context) throws Exception {
         File file = getCacheFile(url, context);
         FileOutputStream outputStream = new FileOutputStream(file);
+
         /*
          *压缩图片，第一个参数如果是Bitmap.CompressFormat.PNG,不过第二个参数是何值，
          * 图片大小都不会改变，不支持PNG图片压缩。使用这个方法压缩图片，图片的大小不会

@@ -1,5 +1,7 @@
 package com.example.playandroid.model;
 
+import android.util.Log;
+
 import com.example.playandroid.entity.Category;
 import com.example.playandroid.entity.Item;
 import com.example.playandroid.net.MyService;
@@ -17,23 +19,27 @@ import java.util.List;
 
 public class CategoryModel {
 
-    public static List<Item> freshCategory(Category category) {
-        List<Item> itemList = ItemModel.getItems(category.getCurrentPage(), category.getId());
+    public static List<Item> loadCategory(Category category, int page) {
+        List<Item> itemList = ItemModel.getItems(page, category.getId());
         List<Item> currentList = category.getItems();
         Iterator<Item> iterator = itemList.iterator();
-        while (iterator.hasNext()) {
-            Item item = iterator.next();
-            boolean del = false;
-            for (Item existItem : currentList) {
-                if (item.getId() == existItem.getId()) {
-                    del = true;
-                    break;
+        if (category.getItems() != null) {
+            while (iterator.hasNext()) {
+                Item item = iterator.next();
+
+                boolean del = false;
+                for (Item existItem : currentList) {
+                    if (item.getId() == existItem.getId()) {
+                        del = true;
+                        break;
+                    }
                 }
+                if (del) iterator.remove();
             }
-            if (del) iterator.remove();
         }
         return itemList;
     }
+
 
     public static List<Category> getCategory() {
         String url = MyService.getCategoryLink();

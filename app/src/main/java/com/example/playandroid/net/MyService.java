@@ -25,6 +25,6 @@ public class MyService {
     }
 
     public static String getItemsLink(int page, int cid) {
-        return host + "project/list/" + page + getDataType() + "?" + cid;
+        return host + "project/list/" + page + getDataType() + "?cid=" + cid;
     }
 }

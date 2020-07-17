@@ -1,5 +1,7 @@
 package com.example.playandroid.model;
 
+import android.util.Log;
+
 import com.example.playandroid.entity.Item;
 import com.example.playandroid.net.MyService;
 import com.example.playandroid.net.OkHttpClient;
@@ -17,6 +19,7 @@ public class ItemModel {
 
     public static List<Item> getItems(int page, int cid) {
         String url = MyService.getItemsLink(page, cid);
+        Log.d("TAG", "getItems: " + url);
         OkHttpClient client = new OkHttpClient();
         Request request = new Request.Builder().url(url).build();
         Response response = client.newCall(request).execute();

@@ -1,11 +1,12 @@
 package com.example.playandroid.entity;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Category {
     private String mName;
     private int mId;
-    private List<Item> mItems;
+    private List<Item> mItems = new ArrayList<>();
     private int mCurrentPage = 1;
 
     public void setId(int mId) {

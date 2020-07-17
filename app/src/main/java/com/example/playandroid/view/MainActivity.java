@@ -8,6 +8,7 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager.widget.ViewPager;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -17,6 +18,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -24,6 +26,8 @@ import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.example.playandroid.R;
+import com.example.playandroid.adapter.CategoryAdapter;
+import com.example.playandroid.adapter.ItemAdapter;
 import com.example.playandroid.adapter.KnowledgeSystemAdapter;
 import com.example.playandroid.adapter.TextAdapter;
 import com.example.playandroid.database.DBUtil;
@@ -37,9 +41,11 @@ import com.example.playandroid.manager.LoadDataManger;
 import com.example.playandroid.presenter.CategoryPresenter;
 import com.example.playandroid.presenter.KnowledgeSystemPresenter;
 import com.example.playandroid.presenter.TextPresenter;
+import com.example.playandroid.util.ThreadAdjustUtil;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -77,6 +83,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private List<Category> categories = new ArrayList<>();
     private boolean haveInitKnowledge = false;
     private boolean haveInitItem = false;
+    private ConcurrentHashMap<Category, ItemAdapter> projectAdapters = new ConcurrentHashMap<>();
 
 
     private Handler mHandler = new Handler(new Handler.Callback() {
@@ -104,6 +111,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     initKnowledgeFragment();
                     haveInitKnowledge = true;
                     break;
+                case LoadDataManger.LOAD_CATEGORY_SUCCESS:
+                    initProjectFragment();
             }
             return false;
         }
@@ -115,6 +124,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) actionBar.hide();
+        ThreadAdjustUtil.initHandler();
         topLayout = findViewById(R.id.top_layout);
         bottomLayout = findViewById(R.id.bottom_layout);
         loadLayout = findViewById(R.id.loading_layout);
@@ -160,20 +170,80 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     sendMessage(LoadDataManger.START_FRESH);
                     List<Category> categoryList = CategoryPresenter.getCategoryList();
                     categories.addAll(categoryList);
-                    for (Category category : categories) {
-                        List<Item> items = freshCategory(category);
-                        if (!items.isEmpty()) category.setItems(items);
-                    }
+                    int maxSize = (int) (Runtime.getRuntime().freeMemory()/(4*categories.size()));
+                    List<Item> itemList = CategoryPresenter.freshCategory(categories.get(0));
+                    ItemAdapter adapter = new ItemAdapter(itemList, maxSize);
+                    projectAdapters.put(categories.get(0), adapter);
                     sendMessage(LoadDataManger.END_FRESH);
+                    sendMessage(LoadDataManger.LOAD_CATEGORY_SUCCESS);
                 }
 
             }
         });
     }
 
-    // 刷新相应ViewPager
-    private List<Item> freshCategory(Category category) {
-        return CategoryPresenter.freshCategory(category);
+    // 加载Category
+    private List<Item> loadCategory(Category category) {
+        List<Item> itemList = CategoryPresenter.loadCategory(category);
+        if (!itemList.isEmpty()) {
+            int currentPage = category.getCurrentPage() + 1;
+            category.setCurrentPage(currentPage);
+        }
+        return itemList;
+    }
+
+    // 设置ViewPager的RecyclerView的Adapter
+    private void setProjectAdapter(View itemView, Category category) {
+        RecyclerView recyclerView = itemView.findViewById(R.id.project_list);
+        LinearLayoutManager manager = new LinearLayoutManager(this);
+        recyclerView.setLayoutManager(manager);
+        ItemAdapter itemAdapter = projectAdapters.get(category);
+        if (itemAdapter == null) {
+            recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+                @Override
+                public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                    super.onScrolled(recyclerView, dx, dy);
+                    if (dy < 0) {
+                        showTopAndBottomLayout();
+
+                    } else if (dy > 0) {
+                        hideTopAndBottomLayout();
+                    }
+                }
+            });
+        } else recyclerView.setAdapter(itemAdapter);
+
+    }
+
+    // 刷新项目界面数据
+    private void freshProjectData(final Category category, final View view) {
+        MyThreadPool.execute(new Runnable() {
+            @Override
+            public void run() {
+                if (!category.getItems().isEmpty()) return;
+                sendMessage(LoadDataManger.START_FRESH);
+                List<Item> itemList = CategoryPresenter.freshCategory(category);
+                ItemAdapter adapter = projectAdapters.get(category);
+                if (adapter == null) {
+                    int maxSize = (int) (Runtime.getRuntime().freeMemory()/(4*categories.size()));
+                    adapter = new ItemAdapter(itemList, maxSize);
+                    projectAdapters.put(category, adapter);
+                    ThreadAdjustUtil.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            setProjectAdapter(view, category);
+                        }
+                    });
+                }
+                if (!itemList.isEmpty()) {
+                    category.getItems().addAll(0, itemList);
+                    int currentPage = category.getCurrentPage() + 1;
+                    category.setCurrentPage(currentPage);
+                    sendMessage(LoadDataManger.LOAD_CATEGORY_SUCCESS);
+                }
+                sendMessage(LoadDataManger.END_FRESH);
+            }
+        });
     }
 
     // 初始化文章页面
@@ -192,16 +262,51 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                         super.onScrolled(recyclerView, dx, dy);
                         if (dy < 0) {
-                            topLayout.setVisibility(View.VISIBLE);
-                            bottomLayout.setVisibility(View.VISIBLE);
+                            showTopAndBottomLayout();
                             if (!recyclerView.canScrollVertically(-1)) freshText();
                         } else if (dy > 0) {
-                            topLayout.setVisibility(View.GONE);
-                            bottomLayout.setVisibility(View.GONE);
+                            hideTopAndBottomLayout();
                             if (!recyclerView.canScrollVertically(1)) setTexts();
                         }
                     }
                 });
+            }
+        }
+    }
+
+    // 初始化项目界面
+    private void initProjectFragment() {
+        ItemFragment fragment = (ItemFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_layout);
+        if (fragment != null) {
+            View view = fragment.getView();
+            if (view != null) {
+                final List<View> views = new ArrayList<>();
+                for (int i = 0; i < categories.size(); i ++) {
+                    View itemView = LayoutInflater.from(this).inflate(R.layout.linearlayout_viewpager_item_view, null);
+                    views.add(itemView);
+                    setProjectAdapter(itemView, categories.get(i));
+                }
+
+                ViewPager viewPager = view.findViewById(R.id.fragment_pager);
+                viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+                    @Override
+                    public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+                    }
+
+                    @Override
+                    public void onPageSelected(int position) {
+                        if (categories.get(position).getItems().isEmpty())
+                            freshProjectData(categories.get(position), views.get(position));
+                    }
+
+                    @Override
+                    public void onPageScrollStateChanged(int state) {
+
+                    }
+                });
+                CategoryAdapter pageAdapter = new CategoryAdapter(categories, views);
+                viewPager.setAdapter(pageAdapter);
             }
         }
     }
@@ -239,17 +344,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                         super.onScrolled(recyclerView, dx, dy);
                         if (dy < 0) {
-                            topLayout.setVisibility(View.VISIBLE);
-                            bottomLayout.setVisibility(View.VISIBLE);
+                            showTopAndBottomLayout();
                             if (!recyclerView.canScrollVertically(-1)) loadKnowledgeSystems();
                         } else if (dy > 0) {
-                            topLayout.setVisibility(View.GONE);
-                            bottomLayout.setVisibility(View.GONE);
+                            hideTopAndBottomLayout();
                         }
                     }
                 });
             }
          }
+    }
+
+    private void hideTopAndBottomLayout() {
+        topLayout.setVisibility(View.GONE);
+        bottomLayout.setVisibility(View.GONE);
+    }
+
+    private void showTopAndBottomLayout() {
+        topLayout.setVisibility(View.VISIBLE);
+        bottomLayout.setVisibility(View.VISIBLE);
     }
 
 
@@ -331,6 +444,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     replaceFragment(new KnowledgeFragment());
                     if (knowledgeSystemList.isEmpty()) loadKnowledgeSystems();
                     fragmentCode = FragmentValuesManager.KNOWLEDGE_FRAGMENT;
+                }
+            case R.id.item_button:
+                if (!isLastClickedButton(FragmentValuesManager.ITEM_FRAGMENT)) {
+                    replaceFragment(new ItemFragment());
+                    if (categories.isEmpty()) getCategoryList();
+                    fragmentCode = FragmentValuesManager.ITEM_FRAGMENT;
                 }
         }
     }
