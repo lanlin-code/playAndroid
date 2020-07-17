@@ -7,6 +7,7 @@ public class LoadDataManger {
     public static final int START_LOADING = 4;
     public static final int END_LOADING = 5;
     public static final int LOAD_KNOWLEDGE_SYSTEM_SUCCESS = 6;
+    public static final int LOAD_CATEGORY_SUCCESS = 7;
 
 
 }

@@ -7,6 +7,7 @@ public class Item {
     private String mNiceDate;
     private String mPictureLink;
     private String mTitle;
+    private int mId;
 
     public void setAuthor(String mAuthor) {
         this.mAuthor = mAuthor;
@@ -32,6 +33,10 @@ public class Item {
         this.mTitle = mTitle;
     }
 
+    public void setId(int mId) {
+        this.mId = mId;
+    }
+
     public String getAuthor() {
         return mAuthor;
     }
@@ -54,5 +59,9 @@ public class Item {
 
     public String getTitle() {
         return mTitle;
+    }
+
+    public int getId() {
+        return mId;
     }
 }

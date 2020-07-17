@@ -27,11 +27,14 @@ import com.example.playandroid.R;
 import com.example.playandroid.adapter.KnowledgeSystemAdapter;
 import com.example.playandroid.adapter.TextAdapter;
 import com.example.playandroid.database.DBUtil;
+import com.example.playandroid.entity.Category;
+import com.example.playandroid.entity.Item;
 import com.example.playandroid.entity.KnowledgeSystem;
 import com.example.playandroid.entity.Text;
 import com.example.playandroid.executor.MyThreadPool;
 import com.example.playandroid.manager.FragmentValuesManager;
 import com.example.playandroid.manager.LoadDataManger;
+import com.example.playandroid.presenter.CategoryPresenter;
 import com.example.playandroid.presenter.KnowledgeSystemPresenter;
 import com.example.playandroid.presenter.TextPresenter;
 
@@ -62,7 +65,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     };
 
     private List<Text> textList = new ArrayList<>();
-    private TextAdapter adapter;
+    private TextAdapter adapter = new TextAdapter(textList);
     private int page = 0;
     private LinearLayout topLayout;
     private LinearLayout bottomLayout;
@@ -70,8 +73,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private RelativeLayout freshLayout;
     private int fragmentCode = FragmentValuesManager.TEXT_FRAGMENT;
     private List<KnowledgeSystem> knowledgeSystemList = new ArrayList<>();
-    private KnowledgeSystemAdapter knowledgeSystemAdapter;
+    private KnowledgeSystemAdapter knowledgeSystemAdapter = new KnowledgeSystemAdapter(knowledgeSystemList);
+    private List<Category> categories = new ArrayList<>();
     private boolean haveInitKnowledge = false;
+    private boolean haveInitItem = false;
 
 
     private Handler mHandler = new Handler(new Handler.Callback() {
@@ -79,7 +84,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         public boolean handleMessage(@NonNull Message msg) {
             switch (msg.what) {
                 case LoadDataManger.LOAD_TEXT_SUCCESS:
-                    adapter = new TextAdapter(textList);
+                    adapter.notifyDataSetChanged();
                     initHomeFragment();
                     break;
                 case LoadDataManger.START_FRESH:
@@ -95,7 +100,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     setRelativeLayoutGone(loadLayout);
                     break;
                 case LoadDataManger.LOAD_KNOWLEDGE_SYSTEM_SUCCESS:
-                    knowledgeSystemAdapter = new KnowledgeSystemAdapter(knowledgeSystemList);
+                    knowledgeSystemAdapter.notifyDataSetChanged();
                     initKnowledgeFragment();
                     haveInitKnowledge = true;
                     break;
@@ -146,6 +151,31 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         transaction.commit();
     }
 
+    // 第一次加载项目界面
+    private void getCategoryList() {
+        MyThreadPool.execute(new Runnable() {
+            @Override
+            public void run() {
+                if (categories.isEmpty()) {
+                    sendMessage(LoadDataManger.START_FRESH);
+                    List<Category> categoryList = CategoryPresenter.getCategoryList();
+                    categories.addAll(categoryList);
+                    for (Category category : categories) {
+                        List<Item> items = freshCategory(category);
+                        if (!items.isEmpty()) category.setItems(items);
+                    }
+                    sendMessage(LoadDataManger.END_FRESH);
+                }
+
+            }
+        });
+    }
+
+    // 刷新相应ViewPager
+    private List<Item> freshCategory(Category category) {
+        return CategoryPresenter.freshCategory(category);
+    }
+
     // 初始化文章页面
     private void initHomeFragment() {
         HomeFragment fragment = (HomeFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_layout);
@@ -181,13 +211,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         MyThreadPool.execute(new Runnable() {
             @Override
             public void run() {
-                sendMessageAboutText(LoadDataManger.START_FRESH);
+                sendMessage(LoadDataManger.START_FRESH);
                 if (knowledgeSystemList.isEmpty()) {
                     List<KnowledgeSystem> data = KnowledgeSystemPresenter.getKnowledgeSystems();
-                    sendMessageAboutText(LoadDataManger.END_FRESH);
+                    sendMessage(LoadDataManger.END_FRESH);
                     if (!data.isEmpty()) {
                         knowledgeSystemList.addAll(data);
-                        sendMessageAboutText(LoadDataManger.LOAD_KNOWLEDGE_SYSTEM_SUCCESS);
+                        sendMessage(LoadDataManger.LOAD_KNOWLEDGE_SYSTEM_SUCCESS);
                     }
                 }
             }
@@ -236,23 +266,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         MyThreadPool.execute(new Runnable() {
             @Override
             public void run() {
-                sendMessageAboutText(LoadDataManger.START_LOADING);
+                sendMessage(LoadDataManger.START_LOADING);
                 List<Text> texts = TextPresenter.getTexts(page, textList);
                 if (!texts.isEmpty()) {
                     textList.addAll(texts);
-                    sendMessageAboutText(LoadDataManger.LOAD_TEXT_SUCCESS);
+                    sendMessage(LoadDataManger.LOAD_TEXT_SUCCESS);
                     DBUtil.writeToLocal(texts, MainActivity.this);
                 } else {
                     page ++;
                     setTexts();
                 }
-                sendMessageAboutText(LoadDataManger.END_LOADING);
+                sendMessage(LoadDataManger.END_LOADING);
             }
         });
 
     }
 
-    public void sendMessageAboutText(int code) {
+    public void sendMessage(int code) {
         Message message = Message.obtain();
         message.what = code;
         mHandler.sendMessage(message);
@@ -267,16 +297,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     List<Text> localText = DBUtil.loadTextFromLocal(MainActivity.this);
                     if (!localText.isEmpty()) {
                         textList.addAll(localText);
-                        sendMessageAboutText(LoadDataManger.LOAD_TEXT_SUCCESS);
+                        sendMessage(LoadDataManger.LOAD_TEXT_SUCCESS);
                     }
                 }
-                sendMessageAboutText(LoadDataManger.START_FRESH);
+                sendMessage(LoadDataManger.START_FRESH);
                 List<Text> texts = TextPresenter.getTexts(0, textList);
-                sendMessageAboutText(LoadDataManger.END_FRESH);
+                sendMessage(LoadDataManger.END_FRESH);
                 if (!texts.isEmpty()) {
                     textList.addAll(0, texts);
-                    sendMessageAboutText(LoadDataManger.END_FRESH);
-                    sendMessageAboutText(LoadDataManger.LOAD_TEXT_SUCCESS);
+                    sendMessage(LoadDataManger.END_FRESH);
+                    sendMessage(LoadDataManger.LOAD_TEXT_SUCCESS);
                     DBUtil.writeToLocal(texts, MainActivity.this);
                 }
             }
