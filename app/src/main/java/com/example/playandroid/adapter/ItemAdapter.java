@@ -7,6 +7,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.playandroid.R;
+import com.example.playandroid.entity.ImageLoader;
 import com.example.playandroid.entity.Item;
 
 import java.util.List;
@@ -17,12 +18,13 @@ import androidx.recyclerview.widget.RecyclerView;
 public class ItemAdapter extends RecyclerView.Adapter {
 
     private List<Item> mItemList;
-
-    public ItemAdapter(List<Item> items) {
+    private ImageLoader imageLoader;
+    public ItemAdapter(List<Item> items, int maxSize) {
         mItemList = items;
+        imageLoader = new ImageLoader(maxSize);
     }
 
-    class ViewHold extends RecyclerView.ViewHolder {
+    static class ViewHold extends RecyclerView.ViewHolder {
 
         ImageView imageView;
         TextView title;
@@ -30,7 +32,7 @@ public class ItemAdapter extends RecyclerView.Adapter {
         TextView author;
         TextView time;
 
-        public ViewHold(@NonNull View itemView) {
+        ViewHold(@NonNull View itemView) {
             super(itemView);
             imageView = itemView.findViewById(R.id.project_img);
             title = itemView.findViewById(R.id.project_title);
@@ -54,7 +56,11 @@ public class ItemAdapter extends RecyclerView.Adapter {
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         ViewHold viewHold = (ViewHold) holder;
         Item item = mItemList.get(position);
-
+        viewHold.author.setText(item.getAuthor());
+        viewHold.description.setText(item.getDescription());
+        viewHold.title.setText(item.getTitle());
+        viewHold.time.setText(item.getNiceDate());
+        imageLoader.display(item.getPictureLink(), viewHold.imageView);
     }
 
     @Override
