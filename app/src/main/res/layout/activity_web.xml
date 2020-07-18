@@ -23,6 +23,7 @@
             android:textSize="20sp"
             android:background="@color/green"
             android:textColor="@color/white"
+            android:id="@+id/web_title"
             android:maxLines="1"
             android:layout_weight="4"/>
 
@@ -37,6 +38,13 @@
 
 
     </LinearLayout>
+
+    <ProgressBar
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+        android:visibility="gone"
+        android:id="@+id/web_progress"/>
 
 
     <WebView
