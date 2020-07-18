@@ -66,6 +66,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 case FragmentValuesManager.KNOWLEDGE_FRAGMENT:
                     if (haveInitKnowledge) initKnowledgeFragment();
                     break;
+                case FragmentValuesManager.ITEM_FRAGMENT:
+                    if (haveInitItem) initProjectFragment();
             }
         }
     };
@@ -170,10 +172,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     sendMessage(LoadDataManger.START_FRESH);
                     List<Category> categoryList = CategoryPresenter.getCategoryList();
                     categories.addAll(categoryList);
-                    int maxSize = (int) (Runtime.getRuntime().freeMemory()/(4*categories.size()));
-                    List<Item> itemList = CategoryPresenter.freshCategory(categories.get(0));
-                    ItemAdapter adapter = new ItemAdapter(itemList, maxSize);
-                    projectAdapters.put(categories.get(0), adapter);
+                    for (Category category : categories) {
+                        freshProjectData(category);
+                    }
                     sendMessage(LoadDataManger.END_FRESH);
                     sendMessage(LoadDataManger.LOAD_CATEGORY_SUCCESS);
                 }
@@ -192,59 +193,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         return itemList;
     }
 
-    // 设置ViewPager的RecyclerView的Adapter
-    private void setProjectAdapter(View itemView, Category category) {
-        RecyclerView recyclerView = itemView.findViewById(R.id.project_list);
-        LinearLayoutManager manager = new LinearLayoutManager(this);
-        recyclerView.setLayoutManager(manager);
-        ItemAdapter itemAdapter = projectAdapters.get(category);
-        if (itemAdapter == null) {
-            recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-                @Override
-                public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
-                    super.onScrolled(recyclerView, dx, dy);
-                    if (dy < 0) {
-                        showTopAndBottomLayout();
-
-                    } else if (dy > 0) {
-                        hideTopAndBottomLayout();
-                    }
-                }
-            });
-        } else recyclerView.setAdapter(itemAdapter);
-
-    }
-
-    // 刷新项目界面数据
-    private void freshProjectData(final Category category, final View view) {
+    // 刷新project界面
+    private void freshProjectData(final Category category) {
         MyThreadPool.execute(new Runnable() {
             @Override
             public void run() {
-                if (!category.getItems().isEmpty()) return;
                 sendMessage(LoadDataManger.START_FRESH);
                 List<Item> itemList = CategoryPresenter.freshCategory(category);
-                ItemAdapter adapter = projectAdapters.get(category);
-                if (adapter == null) {
-                    int maxSize = (int) (Runtime.getRuntime().freeMemory()/(4*categories.size()));
-                    adapter = new ItemAdapter(itemList, maxSize);
-                    projectAdapters.put(category, adapter);
-                    ThreadAdjustUtil.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            setProjectAdapter(view, category);
-                        }
-                    });
-                }
                 if (!itemList.isEmpty()) {
                     category.getItems().addAll(0, itemList);
                     int currentPage = category.getCurrentPage() + 1;
                     category.setCurrentPage(currentPage);
-                    sendMessage(LoadDataManger.LOAD_CATEGORY_SUCCESS);
                 }
                 sendMessage(LoadDataManger.END_FRESH);
             }
         });
     }
+
 
     // 初始化文章页面
     private void initHomeFragment() {
@@ -276,6 +241,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     // 初始化项目界面
     private void initProjectFragment() {
+        if (!haveInitItem) haveInitItem = true;
         ItemFragment fragment = (ItemFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_layout);
         if (fragment != null) {
             View view = fragment.getView();
@@ -283,28 +249,30 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 final List<View> views = new ArrayList<>();
                 for (int i = 0; i < categories.size(); i ++) {
                     View itemView = LayoutInflater.from(this).inflate(R.layout.linearlayout_viewpager_item_view, null);
+                    RecyclerView recyclerView = itemView.findViewById(R.id.project_list);
+                    LinearLayoutManager manager = new LinearLayoutManager(this);
+                    recyclerView.setLayoutManager(manager);
+                    recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+                        @Override
+                        public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                            super.onScrolled(recyclerView, dx, dy);
+                            if (dy < 0) {
+                                showTopAndBottomLayout();
+                            } else {
+                                hideTopAndBottomLayout();
+                            }
+                        }
+                    });
+                    Category category = categories.get(i);
+                    ItemAdapter adapter = projectAdapters.get(category);
+                    if (adapter == null) {
+                        int maxSize = (int) (Runtime.getRuntime().freeMemory()/(4*categories.size()));
+                        adapter = new ItemAdapter(category.getItems(), maxSize);
+                    }
+                    recyclerView.setAdapter(adapter);
                     views.add(itemView);
-                    setProjectAdapter(itemView, categories.get(i));
                 }
-
                 ViewPager viewPager = view.findViewById(R.id.fragment_pager);
-                viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
-                    @Override
-                    public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-
-                    }
-
-                    @Override
-                    public void onPageSelected(int position) {
-                        if (categories.get(position).getItems().isEmpty())
-                            freshProjectData(categories.get(position), views.get(position));
-                    }
-
-                    @Override
-                    public void onPageScrollStateChanged(int state) {
-
-                    }
-                });
                 CategoryAdapter pageAdapter = new CategoryAdapter(categories, views);
                 viewPager.setAdapter(pageAdapter);
             }

@@ -19,7 +19,7 @@ import java.util.List;
 
 public class CategoryModel {
 
-    public static List<Item> loadCategory(Category category, int page) {
+    public static synchronized List<Item> loadCategory(Category category, int page) {
         List<Item> itemList = ItemModel.getItems(page, category.getId());
         List<Item> currentList = category.getItems();
         Iterator<Item> iterator = itemList.iterator();

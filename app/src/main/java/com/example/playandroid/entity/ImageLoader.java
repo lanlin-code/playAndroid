@@ -72,13 +72,12 @@ public class ImageLoader {
         String state = Environment.getExternalStorageState();
         if (Environment.MEDIA_MOUNTED.equals(state)) {
             // 挂载状态，sd卡存在
-            File dir = new File(Environment.getExternalStorageDirectory(),
-                    "/Android/data/" + context.getPackageName() + "/icon");
+            File dir = new File(context.getCacheDir(), "Image");
             // 如果文件不存在则创建
             if (!dir.exists()) dir.mkdirs();
             return new File(dir, name);
         } else {
-            File dir = new File(context.getCacheDir(), "/icon");
+            File dir = new File(context.getCacheDir(), "Image");
             if (!dir.exists()) dir.mkdirs();
             return new File(dir, name);
         }
@@ -108,7 +107,7 @@ public class ImageLoader {
                 connection = (HttpURLConnection) link.openConnection();
                 is = connection.getInputStream();
                 final Bitmap bitmap = BitmapFactory.decodeStream(is);
-//                saveToLocal(bitmap, url, imageView.getContext());
+                saveToLocal(bitmap, url, imageView.getContext());
                 mCache.put(url, bitmap);
                 String current = mTags.get(imageView);
                 if (url.equals(current)) {
