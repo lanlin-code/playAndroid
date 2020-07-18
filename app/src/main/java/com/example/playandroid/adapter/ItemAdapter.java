@@ -48,8 +48,7 @@ public class ItemAdapter extends RecyclerView.Adapter {
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(
                 R.layout.linearlayout_project_recycler_item_view, parent, false);
-        ViewHold viewHold = new ViewHold(view);
-        return viewHold;
+        return new ViewHold(view);
     }
 
     @Override

@@ -115,6 +115,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     break;
                 case LoadDataManger.LOAD_CATEGORY_SUCCESS:
                     initProjectFragment();
+                    break;
+                case LoadDataManger.LOAD_MORE_PROJECT_SUCCESS:
+                    Category category = (Category) msg.obj;
+                    ItemAdapter adapter = projectAdapters.get(category);
+                    if (adapter != null) adapter.notifyDataSetChanged();
+                    break;
             }
             return false;
         }
@@ -239,6 +245,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    private void loadMoreProject(final Category category) {
+        MyThreadPool.execute(new Runnable() {
+            @Override
+            public void run() {
+                sendMessage(LoadDataManger.START_LOADING);
+                List<Item> itemList = loadCategory(category);
+                if (!itemList.isEmpty()) category.getItems().addAll(itemList);
+                sendMessage(LoadDataManger.END_LOADING);
+                Message message = Message.obtain();
+                message.what = LoadDataManger.LOAD_MORE_PROJECT_SUCCESS;
+                message.obj = category;
+                mHandler.sendMessage(message);
+            }
+        });
+    }
+
     // 初始化项目界面
     private void initProjectFragment() {
         if (!haveInitItem) haveInitItem = true;
@@ -252,22 +274,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     RecyclerView recyclerView = itemView.findViewById(R.id.project_list);
                     LinearLayoutManager manager = new LinearLayoutManager(this);
                     recyclerView.setLayoutManager(manager);
+                    final Category category = categories.get(i);
                     recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
                         @Override
                         public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                             super.onScrolled(recyclerView, dx, dy);
                             if (dy < 0) {
                                 showTopAndBottomLayout();
+                                if (!recyclerView.canScrollVertically(-1)) freshProjectData(category);
                             } else {
                                 hideTopAndBottomLayout();
+                                if (!recyclerView.canScrollVertically(1)) loadMoreProject(category);
                             }
                         }
                     });
-                    Category category = categories.get(i);
                     ItemAdapter adapter = projectAdapters.get(category);
                     if (adapter == null) {
                         int maxSize = (int) (Runtime.getRuntime().freeMemory()/(4*categories.size()));
                         adapter = new ItemAdapter(category.getItems(), maxSize);
+                        projectAdapters.put(category, adapter);
                     }
                     recyclerView.setAdapter(adapter);
                     views.add(itemView);
@@ -413,12 +438,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     if (knowledgeSystemList.isEmpty()) loadKnowledgeSystems();
                     fragmentCode = FragmentValuesManager.KNOWLEDGE_FRAGMENT;
                 }
+                break;
             case R.id.item_button:
                 if (!isLastClickedButton(FragmentValuesManager.ITEM_FRAGMENT)) {
                     replaceFragment(new ItemFragment());
                     if (categories.isEmpty()) getCategoryList();
                     fragmentCode = FragmentValuesManager.ITEM_FRAGMENT;
                 }
+                break;
         }
     }
 }

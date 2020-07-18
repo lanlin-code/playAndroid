@@ -17,7 +17,7 @@ import java.util.List;
 
 public class ItemModel {
 
-    public static List<Item> getItems(int page, int cid) {
+    static List<Item> getItems(int page, int cid) {
         String url = MyService.getItemsLink(page, cid);
         OkHttpClient client = new OkHttpClient();
         Request request = new Request.Builder().url(url).build();
