@@ -1,5 +1,7 @@
 package com.example.playandroid.adapter;
 
+import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -7,6 +9,8 @@ import android.widget.TextView;
 
 import com.example.playandroid.R;
 import com.example.playandroid.entity.Text;
+import com.example.playandroid.manager.DataTransferManager;
+import com.example.playandroid.view.WebActivity;
 
 import java.util.List;
 
@@ -27,6 +31,7 @@ public class TextAdapter extends RecyclerView.Adapter {
         TextView mNiceDate;
         TextView mTitle;
         TextView mAuthor;
+        View view;
 
 
         ViewHolder(@NonNull View itemView) {
@@ -35,6 +40,7 @@ public class TextAdapter extends RecyclerView.Adapter {
             mChapterName = itemView.findViewById(R.id.chapter_name);
             mNiceDate = itemView.findViewById(R.id.nice_date);
             mTitle = itemView.findViewById(R.id.text_title);
+            view = itemView;
         }
     }
 
@@ -48,11 +54,20 @@ public class TextAdapter extends RecyclerView.Adapter {
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         ViewHolder viewHolder = (ViewHolder) holder;
-        Text item = mList.get(position);
+        final Text item = mList.get(position);
         viewHolder.mTitle.setText(item.getTitle());
         viewHolder.mNiceDate.setText(item.getNiceDate());
         viewHolder.mAuthor.setText(item.getAuthor());
         viewHolder.mChapterName.setText(item.getSuperChapterName() + "/" + item.getChapterName());
+        viewHolder.view.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Context context = v.getContext();
+                Intent intent = new Intent(context, WebActivity.class);
+                intent.putExtra(DataTransferManager.KEY, item.getLink());
+                context.startActivity(intent);
+            }
+        });
     }
 
     @Override

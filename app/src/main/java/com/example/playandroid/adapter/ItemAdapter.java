@@ -1,5 +1,7 @@
 package com.example.playandroid.adapter;
 
+import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,6 +11,8 @@ import android.widget.TextView;
 import com.example.playandroid.R;
 import com.example.playandroid.entity.ImageLoader;
 import com.example.playandroid.entity.Item;
+import com.example.playandroid.manager.DataTransferManager;
+import com.example.playandroid.view.WebActivity;
 
 import java.util.List;
 
@@ -31,6 +35,7 @@ public class ItemAdapter extends RecyclerView.Adapter {
         TextView description;
         TextView author;
         TextView time;
+        View view;
 
         ViewHold(@NonNull View itemView) {
             super(itemView);
@@ -39,13 +44,13 @@ public class ItemAdapter extends RecyclerView.Adapter {
             description = itemView.findViewById(R.id.project_description);
             author = itemView.findViewById(R.id.project_author);
             time = itemView.findViewById(R.id.project_time);
-
+            view = itemView;
         }
     }
 
     @NonNull
     @Override
-    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull final ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(
                 R.layout.linearlayout_project_recycler_item_view, parent, false);
         return new ViewHold(view);
@@ -54,11 +59,20 @@ public class ItemAdapter extends RecyclerView.Adapter {
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         ViewHold viewHold = (ViewHold) holder;
-        Item item = mItemList.get(position);
+        final Item item = mItemList.get(position);
         viewHold.author.setText(item.getAuthor());
         viewHold.description.setText(item.getDescription());
         viewHold.title.setText(item.getTitle());
         viewHold.time.setText(item.getNiceDate());
+        viewHold.view.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Context context = v.getContext();
+                Intent intent = new Intent(context, WebActivity.class);
+                intent.putExtra(DataTransferManager.KEY, item.getLink());
+                context.startActivity(intent);
+            }
+        });
         imageLoader.display(item.getPictureLink(), viewHold.imageView);
     }
 

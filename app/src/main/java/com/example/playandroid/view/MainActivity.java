@@ -19,6 +19,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -36,6 +37,7 @@ import com.example.playandroid.entity.Item;
 import com.example.playandroid.entity.KnowledgeSystem;
 import com.example.playandroid.entity.Text;
 import com.example.playandroid.executor.MyThreadPool;
+import com.example.playandroid.manager.DataTransferManager;
 import com.example.playandroid.manager.FragmentValuesManager;
 import com.example.playandroid.manager.LoadDataManger;
 import com.example.playandroid.presenter.CategoryPresenter;
@@ -344,6 +346,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         }
                     }
                 });
+
             }
          }
     }
@@ -387,6 +390,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
 
     }
+
 
     public void sendMessage(int code) {
         Message message = Message.obtain();
