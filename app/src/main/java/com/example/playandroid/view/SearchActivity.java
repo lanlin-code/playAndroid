@@ -10,12 +10,10 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -29,6 +27,7 @@ import com.example.playandroid.presenter.HotWordPresenter;
 import com.example.playandroid.presenter.TextPresenter;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public class SearchActivity extends AppCompatActivity implements View.OnClickListener {
@@ -88,6 +87,13 @@ public class SearchActivity extends AppCompatActivity implements View.OnClickLis
         recyclerView.setAdapter(adapter);
         LinearLayoutManager manager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(manager);
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                if (dy > 0 && !recyclerView.canScrollVertically(1)) loadText();
+            }
+        });
     }
 
 
@@ -105,13 +111,15 @@ public class SearchActivity extends AppCompatActivity implements View.OnClickLis
 
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
+
         if (!TextUtils.isEmpty(keyword)) {
             recyclerView.setVisibility(View.GONE);
             flowLayout.setVisibility(View.VISIBLE);
             keyword = null;
-            return;
-        }
+            currentPage = 0;
+            removeAll();
+        } else finish();
+
     }
 
     @Override
@@ -123,7 +131,7 @@ public class SearchActivity extends AppCompatActivity implements View.OnClickLis
             case R.id.search_in_activity_search:
                 keyword = editText.getText().toString();
                 loadText();
-
+                break;
         }
     }
 
@@ -156,9 +164,19 @@ public class SearchActivity extends AppCompatActivity implements View.OnClickLis
                 sendMessage(LoadDataManager.START_LOADING);
                 List<Text> textList = TextPresenter.getSearchText(currentPage, keyword);
                 texts.addAll(textList);
+                currentPage ++;
                 sendMessage(LoadDataManager.END_LOADING);
                 sendMessage(LoadDataManager.LOAD_TEXT_SUCCESS);
             }
         });
+    }
+
+    private void removeAll() {
+        Iterator<Text> iterator = texts.iterator();
+        while (iterator.hasNext()) {
+            iterator.next();
+            iterator.remove();
+        }
+        adapter.notifyDataSetChanged();
     }
 }

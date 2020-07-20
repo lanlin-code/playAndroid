@@ -3,9 +3,11 @@ package com.example.playandroid.net;
 import android.util.Log;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
@@ -40,15 +42,16 @@ public class Call {
      */
     private StringBuilder post() {
         HttpURLConnection connection = null;
-        DataOutputStream outputStream = null;
+        BufferedWriter outputStream = null;
         BufferedReader reader = null;
         StringBuilder stringBuilder = new StringBuilder();;
         try {
             connection = (HttpURLConnection) new URL(mUrl).openConnection();
             connection.setRequestMethod("POST");
-            outputStream = new DataOutputStream(connection.getOutputStream());
+            outputStream = new BufferedWriter(new OutputStreamWriter(connection.getOutputStream()));
             Log.d("TAG", "post: " + mPostData);
-            outputStream.writeBytes(mPostData);
+            outputStream.write(mPostData);
+            outputStream.close();
             int requestCode = connection.getResponseCode();
             if (requestCode == HttpURLConnection.HTTP_OK) {
                 String line;
@@ -58,13 +61,10 @@ public class Call {
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
-            if (outputStream != null) {
-                try {
-                    outputStream.close();
-                    if (reader != null) reader.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+            try {
+                if (reader != null) reader.close();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
             if (connection != null) connection.disconnect();
         }

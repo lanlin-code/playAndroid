@@ -51,7 +51,6 @@ public class TextModel {
         Log.d("TAG", "getSearchText: " + url);
         OkHttpClient client = new OkHttpClient();
         RequestBody requestBody = new RequestBody.Builder().add("k", keyword).build();
-
         Request request = new Request.Builder().url(url).post(requestBody).build();
         Response response = client.newCall(request).execute();
         String data = response.body().toString();
