@@ -43,6 +43,7 @@ import com.example.playandroid.presenter.TextPresenter;
 import com.example.playandroid.util.ThreadAdjustUtil;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -70,20 +71,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         }
     };
-
-    private List<Text> textList = new ArrayList<>();
-    private TextAdapter adapter = new TextAdapter(textList);
-    private int page = 0;
-    private LinearLayout topLayout;
-    private LinearLayout bottomLayout;
-    private RelativeLayout loadLayout;
-    private RelativeLayout freshLayout;
-    private int fragmentCode = FragmentValuesManager.TEXT_FRAGMENT;
-    private List<KnowledgeSystem> knowledgeSystemList = new ArrayList<>();
+    private List<Text> textList = new ArrayList<>(); // 首页文章数据
+    private TextAdapter adapter = new TextAdapter(textList); // 首页recyclerview的适配器
+    private int page = 0; // 首页文章当前页数
+    private LinearLayout topLayout; // 标题界面
+    private LinearLayout bottomLayout; // 选项页面
+    private RelativeLayout loadLayout; // 加载页面
+    private RelativeLayout freshLayout; // 刷新页面
+    private int fragmentCode = FragmentValuesManager.TEXT_FRAGMENT; // 当前碎片的编号
+    private List<KnowledgeSystem> knowledgeSystemList = new ArrayList<>(); // 知识体系数据
+    // 知识体系适配器
     private KnowledgeSystemAdapter knowledgeSystemAdapter = new KnowledgeSystemAdapter(knowledgeSystemList);
-    private List<Category> categories = new ArrayList<>();
-    private boolean haveInitKnowledge = false;
-    private boolean haveInitItem = false;
+    private List<Category> categories = new ArrayList<>(); // 项目清单数据
+    private boolean haveInitKnowledge = false; // 是否初始化知识体系碎片
+    private boolean haveInitItem = false; // 是否初始化项目碎片
+    // 项目清单适配器
     private ConcurrentHashMap<Category, ItemAdapter> projectAdapters = new ConcurrentHashMap<>();
 
 
@@ -246,6 +248,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    //下拉加载更多项目数据
     private void loadMoreProject(final Category category) {
         MyThreadPool.execute(new Runnable() {
             @Override
@@ -350,11 +353,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
          }
     }
 
+    // 下滑隐藏标题和选项界面
     private void hideTopAndBottomLayout() {
         topLayout.setVisibility(View.GONE);
         bottomLayout.setVisibility(View.GONE);
     }
 
+    // 上滑显示标题和选项界面
     private void showTopAndBottomLayout() {
         topLayout.setVisibility(View.VISIBLE);
         bottomLayout.setVisibility(View.VISIBLE);
@@ -375,11 +380,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void run() {
                 sendMessage(LoadDataManager.START_LOADING);
-                List<Text> texts = TextPresenter.getTexts(page, textList);
-                if (!texts.isEmpty()) {
-                    textList.addAll(texts);
+                List<Text> texts = TextPresenter.getTexts(page);
+                updateTime(texts);
+                List<Text> list = checkText(texts);
+                if (!list.isEmpty()) {
+                    textList.addAll(list);
                     sendMessage(LoadDataManager.LOAD_TEXT_SUCCESS);
-                    DBUtil.writeToLocal(texts, MainActivity.this);
+                    DBUtil.writeToLocal(list, MainActivity.this);
                 } else {
                     page ++;
                     setTexts();
@@ -390,6 +397,31 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     }
 
+    // 更新显示时间
+    private void updateTime(List<Text> texts) {
+        for (Text text : texts) {
+            for (Text t : textList) {
+                if (text.getId() == t.getId()) {
+                    t.setNiceDate(text.getNiceDate());
+                }
+            }
+        }
+    }
+
+    // 检查本地是否存在该条数据
+    private List<Text> checkText(List<Text> texts) {
+        Iterator<Text> iterator = texts.iterator();
+        while (iterator.hasNext()) {
+            Text text = iterator.next();
+            for (Text t : textList) {
+                if (t.getId() == text.getId()) {
+                    iterator.remove();
+                    break;
+                }
+            }
+        }
+        return texts;
+    }
 
     public void sendMessage(int code) {
         Message message = Message.obtain();
@@ -410,13 +442,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     }
                 }
                 sendMessage(LoadDataManager.START_FRESH);
-                List<Text> texts = TextPresenter.getTexts(0, textList);
+                List<Text> texts = TextPresenter.getTexts(0);
+                updateTime(texts);
+                List<Text> list = checkText(texts);
                 sendMessage(LoadDataManager.END_FRESH);
-                if (!texts.isEmpty()) {
-                    textList.addAll(0, texts);
+                if (!list.isEmpty()) {
+                    textList.addAll(0, list);
                     sendMessage(LoadDataManager.END_FRESH);
                     sendMessage(LoadDataManager.LOAD_TEXT_SUCCESS);
-                    DBUtil.writeToLocal(texts, MainActivity.this);
+                    DBUtil.writeToLocal(list, MainActivity.this);
                 }
             }
         });

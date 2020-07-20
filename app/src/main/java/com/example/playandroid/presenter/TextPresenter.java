@@ -10,8 +10,8 @@ import java.util.List;
 
 public class TextPresenter {
 
-    public static List<Text> getTexts(int page, List<Text> textList) {
-        return TextModel.getTexts(page, textList);
+    public static List<Text> getTexts(int page) {
+        return TextModel.getTexts(page);
     }
 
     public static List<Text> getSearchText(int page, String keyword) {

@@ -32,7 +32,6 @@ public class HotWordModel {
             for (int i = 0; i < array.length(); i ++) {
                 JSONObject object = array.getJSONObject(i);
                 String name = object.getString("name");
-                Log.d("TAG", "parseData: " + name);
                 hotWord.add(name);
             }
         } catch (JSONException e) {

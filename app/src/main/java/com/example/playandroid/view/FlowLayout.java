@@ -48,14 +48,18 @@ public class FlowLayout extends ViewGroup {
             MarginLayoutParams layoutParams = (MarginLayoutParams) child.getLayoutParams();
             int childWidth = child.getMeasuredWidth() + layoutParams.leftMargin + layoutParams.rightMargin;
             int childHeight = child.getMeasuredHeight() + layoutParams.topMargin + layoutParams.bottomMargin;
-            if (childWidth + lineWidth <= getWidth() + getPaddingStart() + getPaddingEnd()) {
+            if (childWidth + lineWidth <= sizeWidth) {
                 lineWidth += childWidth;
                 lineHeight = Math.max(lineHeight, childHeight);
             } else {
-                width = Math.max(lineWidth, child.getWidth());
-                lineWidth = child.getWidth();
+                width = Math.max(lineWidth, width);
+                lineWidth = childWidth;
                 height += lineHeight;
                 lineHeight = childHeight;
+            }
+            if (i == childCount-1) {
+                width = Math.max(lineWidth, width);
+                height += lineHeight;
             }
         }
         if (widthModel == MeasureSpec.EXACTLY) finalWidth = sizeWidth;

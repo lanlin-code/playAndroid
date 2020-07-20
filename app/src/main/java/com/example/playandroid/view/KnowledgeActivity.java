@@ -101,7 +101,7 @@ public class KnowledgeActivity extends AppCompatActivity {
         loadTextFirstly();
     }
 
-
+    // 初始化界面
     private void initPageView() {
         List<Knowledge> knowledgeList = data.getKnowledgeList();
         viewList = new ArrayList<>();
@@ -113,9 +113,7 @@ public class KnowledgeActivity extends AppCompatActivity {
         viewPager.setAdapter(adapter);
     }
 
-
     private void initRecyclerView(final Knowledge knowledge) {
-        Log.d("TAG", "initRecyclerView: ");
         List<Knowledge> knowledgeList = data.getKnowledgeList();
         int position = knowledgeList.indexOf(knowledge);
         View view = viewList.get(position);
