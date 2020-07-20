@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/kind"
+            android:id="@+id/knowledge_kind_tag"
+            android:layout_alignParentStart="true"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/green"
+            android:layout_alignParentEnd="true"
+            android:id="@+id/knowledge_time"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/time"
+            android:id="@+id/knowledge_time_tag"
+            android:layout_toStartOf="@id/knowledge_time"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/green"
+            android:id="@+id/knowledge_kind"
+            android:layout_toEndOf="@id/knowledge_kind_tag"
+            android:layout_toStartOf="@id/knowledge_time_tag"
+            android:maxLines="1"/>
+
+
+    </RelativeLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/knowledge_title"/>
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/knowledge_author_tag"
+            android:text="@string/author"
+            android:layout_alignParentStart="true"/>
+
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/knowledge_star_button"
+            android:src="@drawable/ic_star_border_black_24dp"
+            android:background="@color/white"
+            android:layout_alignParentEnd="true"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/green"
+            android:id="@+id/knowledge_author"
+            android:layout_toEndOf="@id/knowledge_author_tag"
+            android:layout_toStartOf="@id/knowledge_star_button"
+            />
+
+
+    </RelativeLayout>
+
+</LinearLayout>

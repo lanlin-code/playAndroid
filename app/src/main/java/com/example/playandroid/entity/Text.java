@@ -1,5 +1,6 @@
 package com.example.playandroid.entity;
 
+
 import androidx.annotation.NonNull;
 
 public class Text {
@@ -10,6 +11,8 @@ public class Text {
     private String mSuperChapterName; // 大类别
     private String mTitle; // 标题
     private int mId;
+
+
 
 
     public void setAuthor(String mAuthor) {
@@ -74,4 +77,6 @@ public class Text {
     public String toString() {
         return "author is " + mAuthor + ", title is " + mTitle;
     }
+
+
 }

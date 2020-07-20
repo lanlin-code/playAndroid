@@ -9,6 +9,8 @@ public class LoadDataManger {
     public static final int LOAD_KNOWLEDGE_SYSTEM_SUCCESS = 6;
     public static final int LOAD_CATEGORY_SUCCESS = 7;
     public static final int LOAD_MORE_PROJECT_SUCCESS = 8;
+    public static final int LOAD_KNOWLEDGE_SUCCESS = 9;
+    public static final int LOAD_KNOWLEDGE_TEXT_FIRSTLY = 10;
 
 
 }

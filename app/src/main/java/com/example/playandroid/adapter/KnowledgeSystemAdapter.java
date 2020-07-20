@@ -1,6 +1,7 @@
 package com.example.playandroid.adapter;
 
 import android.content.Context;
+import android.content.Intent;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,7 +11,9 @@ import android.widget.TextView;
 import com.example.playandroid.R;
 import com.example.playandroid.entity.Knowledge;
 import com.example.playandroid.entity.KnowledgeSystem;
+import com.example.playandroid.manager.DataTransferManager;
 import com.example.playandroid.view.FlowLayout;
+import com.example.playandroid.view.KnowledgeActivity;
 
 import java.util.List;
 
@@ -29,11 +32,13 @@ public class KnowledgeSystemAdapter extends RecyclerView.Adapter {
     static class ViewHolder extends RecyclerView.ViewHolder {
         TextView title;
         TextView tag;
+        View view;
 
         ViewHolder(@NonNull View itemView) {
             super(itemView);
             title = itemView.findViewById(R.id.knowledge_name);
             tag = itemView.findViewById(R.id.knowledge_tag);
+            view = itemView;
         }
     }
 
@@ -48,7 +53,7 @@ public class KnowledgeSystemAdapter extends RecyclerView.Adapter {
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         ViewHolder viewHolder = (ViewHolder) holder;
-        KnowledgeSystem item = mKnowledgeSystemList.get(position);
+        final KnowledgeSystem item = mKnowledgeSystemList.get(position);
         viewHolder.title.setText(item.getName());
         List<Knowledge> knowledgeList = item.getKnowledgeList();
         StringBuilder stringBuilder = new StringBuilder();
@@ -56,6 +61,15 @@ public class KnowledgeSystemAdapter extends RecyclerView.Adapter {
             stringBuilder.append(knowledge.getName()).append("  ");
         }
         viewHolder.tag.setText(stringBuilder.toString());
+        viewHolder.view.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Context context = v.getContext();
+                Intent intent = new Intent(context, KnowledgeActivity.class);
+                intent.putExtra(DataTransferManager.KEY, item);
+                context.startActivity(intent);
+            }
+        });
     }
 
     @Override

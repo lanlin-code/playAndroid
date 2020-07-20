@@ -59,7 +59,7 @@ public class TextModel {
      * @return 如果网络请求返回的errorCode=1，返回一个空的List，否则返回一个含有多个text的List
      */
 
-    private static List<Text> parseData(String data) {
+     static List<Text> parseData(String data) {
         List<Text> texts = new ArrayList<>();
         try {
             JSONObject object = new JSONObject(data);
