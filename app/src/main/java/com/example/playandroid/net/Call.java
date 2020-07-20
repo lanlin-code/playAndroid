@@ -1,5 +1,7 @@
 package com.example.playandroid.net;
 
+import android.util.Log;
+
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -45,6 +47,7 @@ public class Call {
             connection = (HttpURLConnection) new URL(mUrl).openConnection();
             connection.setRequestMethod("POST");
             outputStream = new DataOutputStream(connection.getOutputStream());
+            Log.d("TAG", "post: " + mPostData);
             outputStream.writeBytes(mPostData);
             int requestCode = connection.getResponseCode();
             if (requestCode == HttpURLConnection.HTTP_OK) {

@@ -19,7 +19,7 @@ import java.util.List;
 
 public class KnowledgeTextModel {
 
-    public static List<KnowledgeText> load(Knowledge knowledge, int page, int cid) {
+    public static synchronized List<KnowledgeText> load(Knowledge knowledge, int page, int cid) {
         String url = MyService.getKnowledgeLink(page, cid);
         OkHttpClient client = new OkHttpClient();
         Request request = new Request.Builder().url(url).build();

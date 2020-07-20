@@ -17,14 +17,12 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
-import android.widget.Toast;
 
 import com.example.playandroid.R;
 import com.example.playandroid.adapter.CategoryAdapter;
@@ -37,9 +35,8 @@ import com.example.playandroid.entity.Item;
 import com.example.playandroid.entity.KnowledgeSystem;
 import com.example.playandroid.entity.Text;
 import com.example.playandroid.executor.MyThreadPool;
-import com.example.playandroid.manager.DataTransferManager;
 import com.example.playandroid.manager.FragmentValuesManager;
-import com.example.playandroid.manager.LoadDataManger;
+import com.example.playandroid.manager.LoadDataManager;
 import com.example.playandroid.presenter.CategoryPresenter;
 import com.example.playandroid.presenter.KnowledgeSystemPresenter;
 import com.example.playandroid.presenter.TextPresenter;
@@ -94,31 +91,31 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         @Override
         public boolean handleMessage(@NonNull Message msg) {
             switch (msg.what) {
-                case LoadDataManger.LOAD_TEXT_SUCCESS:
+                case LoadDataManager.LOAD_TEXT_SUCCESS:
                     adapter.notifyDataSetChanged();
                     initHomeFragment();
                     break;
-                case LoadDataManger.START_FRESH:
+                case LoadDataManager.START_FRESH:
                     setRelativeLayoutVisible(freshLayout);
                     break;
-                case LoadDataManger.END_FRESH:
+                case LoadDataManager.END_FRESH:
                     setRelativeLayoutGone(freshLayout);
                     break;
-                case LoadDataManger.START_LOADING:
+                case LoadDataManager.START_LOADING:
                     setRelativeLayoutVisible(loadLayout);
                     break;
-                case LoadDataManger.END_LOADING:
+                case LoadDataManager.END_LOADING:
                     setRelativeLayoutGone(loadLayout);
                     break;
-                case LoadDataManger.LOAD_KNOWLEDGE_SYSTEM_SUCCESS:
+                case LoadDataManager.LOAD_KNOWLEDGE_SYSTEM_SUCCESS:
                     knowledgeSystemAdapter.notifyDataSetChanged();
                     initKnowledgeFragment();
                     haveInitKnowledge = true;
                     break;
-                case LoadDataManger.LOAD_CATEGORY_SUCCESS:
+                case LoadDataManager.LOAD_CATEGORY_SUCCESS:
                     initProjectFragment();
                     break;
-                case LoadDataManger.LOAD_MORE_PROJECT_SUCCESS:
+                case LoadDataManager.LOAD_MORE_PROJECT_SUCCESS:
                     Category category = (Category) msg.obj;
                     ItemAdapter adapter = projectAdapters.get(category);
                     if (adapter != null) adapter.notifyDataSetChanged();
@@ -142,9 +139,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Button home = findViewById(R.id.home_button);
         Button knowledgeSystem = findViewById(R.id.knowledge_button);
         Button item = findViewById(R.id.item_button);
+        ImageButton search = findViewById(R.id.search);
         home.setOnClickListener(this);
         knowledgeSystem.setOnClickListener(this);
         item.setOnClickListener(this);
+        search.setOnClickListener(this);
         replaceFragment(new HomeFragment());
         freshText();
     }
@@ -177,14 +176,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void run() {
                 if (categories.isEmpty()) {
-                    sendMessage(LoadDataManger.START_FRESH);
+                    sendMessage(LoadDataManager.START_FRESH);
                     List<Category> categoryList = CategoryPresenter.getCategoryList();
                     categories.addAll(categoryList);
                     for (Category category : categories) {
                         freshProjectData(category);
                     }
-                    sendMessage(LoadDataManger.END_FRESH);
-                    sendMessage(LoadDataManger.LOAD_CATEGORY_SUCCESS);
+                    sendMessage(LoadDataManager.END_FRESH);
+                    sendMessage(LoadDataManager.LOAD_CATEGORY_SUCCESS);
                 }
 
             }
@@ -206,14 +205,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         MyThreadPool.execute(new Runnable() {
             @Override
             public void run() {
-                sendMessage(LoadDataManger.START_FRESH);
+                sendMessage(LoadDataManager.START_FRESH);
                 List<Item> itemList = CategoryPresenter.freshCategory(category);
                 if (!itemList.isEmpty()) {
                     category.getItems().addAll(0, itemList);
                     int currentPage = category.getCurrentPage() + 1;
                     category.setCurrentPage(currentPage);
                 }
-                sendMessage(LoadDataManger.END_FRESH);
+                sendMessage(LoadDataManager.END_FRESH);
             }
         });
     }
@@ -251,12 +250,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         MyThreadPool.execute(new Runnable() {
             @Override
             public void run() {
-                sendMessage(LoadDataManger.START_LOADING);
+                sendMessage(LoadDataManager.START_LOADING);
                 List<Item> itemList = loadCategory(category);
                 if (!itemList.isEmpty()) category.getItems().addAll(itemList);
-                sendMessage(LoadDataManger.END_LOADING);
+                sendMessage(LoadDataManager.END_LOADING);
                 Message message = Message.obtain();
-                message.what = LoadDataManger.LOAD_MORE_PROJECT_SUCCESS;
+                message.what = LoadDataManager.LOAD_MORE_PROJECT_SUCCESS;
                 message.obj = category;
                 mHandler.sendMessage(message);
             }
@@ -311,13 +310,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         MyThreadPool.execute(new Runnable() {
             @Override
             public void run() {
-                sendMessage(LoadDataManger.START_FRESH);
+                sendMessage(LoadDataManager.START_FRESH);
                 if (knowledgeSystemList.isEmpty()) {
                     List<KnowledgeSystem> data = KnowledgeSystemPresenter.getKnowledgeSystems();
-                    sendMessage(LoadDataManger.END_FRESH);
+                    sendMessage(LoadDataManager.END_FRESH);
                     if (!data.isEmpty()) {
                         knowledgeSystemList.addAll(data);
-                        sendMessage(LoadDataManger.LOAD_KNOWLEDGE_SYSTEM_SUCCESS);
+                        sendMessage(LoadDataManager.LOAD_KNOWLEDGE_SYSTEM_SUCCESS);
                     }
                 }
             }
@@ -375,17 +374,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         MyThreadPool.execute(new Runnable() {
             @Override
             public void run() {
-                sendMessage(LoadDataManger.START_LOADING);
+                sendMessage(LoadDataManager.START_LOADING);
                 List<Text> texts = TextPresenter.getTexts(page, textList);
                 if (!texts.isEmpty()) {
                     textList.addAll(texts);
-                    sendMessage(LoadDataManger.LOAD_TEXT_SUCCESS);
+                    sendMessage(LoadDataManager.LOAD_TEXT_SUCCESS);
                     DBUtil.writeToLocal(texts, MainActivity.this);
                 } else {
                     page ++;
                     setTexts();
                 }
-                sendMessage(LoadDataManger.END_LOADING);
+                sendMessage(LoadDataManager.END_LOADING);
             }
         });
 
@@ -407,16 +406,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     List<Text> localText = DBUtil.loadTextFromLocal(MainActivity.this);
                     if (!localText.isEmpty()) {
                         textList.addAll(localText);
-                        sendMessage(LoadDataManger.LOAD_TEXT_SUCCESS);
+                        sendMessage(LoadDataManager.LOAD_TEXT_SUCCESS);
                     }
                 }
-                sendMessage(LoadDataManger.START_FRESH);
+                sendMessage(LoadDataManager.START_FRESH);
                 List<Text> texts = TextPresenter.getTexts(0, textList);
-                sendMessage(LoadDataManger.END_FRESH);
+                sendMessage(LoadDataManager.END_FRESH);
                 if (!texts.isEmpty()) {
                     textList.addAll(0, texts);
-                    sendMessage(LoadDataManger.END_FRESH);
-                    sendMessage(LoadDataManger.LOAD_TEXT_SUCCESS);
+                    sendMessage(LoadDataManager.END_FRESH);
+                    sendMessage(LoadDataManager.LOAD_TEXT_SUCCESS);
                     DBUtil.writeToLocal(texts, MainActivity.this);
                 }
             }
@@ -449,6 +448,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     if (categories.isEmpty()) getCategoryList();
                     fragmentCode = FragmentValuesManager.ITEM_FRAGMENT;
                 }
+                break;
+            case R.id.search:
+                Intent intent = new Intent(this, SearchActivity.class);
+                startActivity(intent);
                 break;
         }
     }

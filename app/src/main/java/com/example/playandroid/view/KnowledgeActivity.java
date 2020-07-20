@@ -22,20 +22,17 @@ import android.widget.TextView;
 import com.example.playandroid.R;
 import com.example.playandroid.adapter.KnowledgeAdapter;
 import com.example.playandroid.adapter.KnowledgeTextAdapter;
-import com.example.playandroid.adapter.TextAdapter;
 import com.example.playandroid.entity.Knowledge;
 import com.example.playandroid.entity.KnowledgeSystem;
 import com.example.playandroid.entity.KnowledgeText;
-import com.example.playandroid.entity.Text;
 import com.example.playandroid.executor.MyThreadPool;
 import com.example.playandroid.manager.DataTransferManager;
-import com.example.playandroid.manager.LoadDataManger;
+import com.example.playandroid.manager.LoadDataManager;
 import com.example.playandroid.presenter.KnowledgePresenter;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class KnowledgeActivity extends AppCompatActivity {
 
@@ -51,26 +48,26 @@ public class KnowledgeActivity extends AppCompatActivity {
         @Override
         public boolean handleMessage(@NonNull Message msg) {
             switch (msg.what) {
-                case LoadDataManger.START_FRESH:
+                case LoadDataManager.START_FRESH:
                     freshBar.setVisibility(View.VISIBLE);
                     break;
-                case LoadDataManger.END_FRESH:
+                case LoadDataManager.END_FRESH:
                     freshBar.setVisibility(View.GONE);
                     break;
-                case LoadDataManger.START_LOADING:
+                case LoadDataManager.START_LOADING:
                     loadingLayout.setVisibility(View.VISIBLE);
                     break;
-                case LoadDataManger.END_LOADING:
+                case LoadDataManager.END_LOADING:
                     loadingLayout.setVisibility(View.GONE);
                     break;
-                case LoadDataManger.LOAD_KNOWLEDGE_SUCCESS:
+                case LoadDataManager.LOAD_KNOWLEDGE_SUCCESS:
                     Knowledge k = (Knowledge) msg.obj;
                     if (k != null) {
                         KnowledgeTextAdapter adapter = adapters.get(k);
                         if (adapter != null) adapter.notifyDataSetChanged();
                     }
                     break;
-                case LoadDataManger.LOAD_KNOWLEDGE_TEXT_FIRSTLY:
+                case LoadDataManager.LOAD_KNOWLEDGE_TEXT_FIRSTLY:
                     Knowledge knowledge = (Knowledge) msg.obj;
                     initRecyclerView(knowledge);
                     break;
@@ -151,7 +148,7 @@ public class KnowledgeActivity extends AppCompatActivity {
                         knowledge.getTexts().addAll(texts);
                         int currentPage = knowledge.getPage() + 1;
                         knowledge.setPage(currentPage);
-                        sendMessage(LoadDataManger.LOAD_KNOWLEDGE_TEXT_FIRSTLY, knowledge);
+                        sendMessage(LoadDataManager.LOAD_KNOWLEDGE_TEXT_FIRSTLY, knowledge);
                     }
 
                 }
@@ -164,15 +161,15 @@ public class KnowledgeActivity extends AppCompatActivity {
         MyThreadPool.execute(new Runnable() {
             @Override
             public void run() {
-                sendMessage(LoadDataManger.START_FRESH, null);
+                sendMessage(LoadDataManager.START_FRESH, null);
                 List<KnowledgeText> knowledgeTexts = KnowledgePresenter.freshData(knowledge);
                 if (!knowledgeTexts.isEmpty()) {
                     knowledge.getTexts().addAll(0, knowledgeTexts);
                     int currentPage = knowledge.getPage() + 1;
                     knowledge.setPage(currentPage);
-                    sendMessage(LoadDataManger.LOAD_KNOWLEDGE_SUCCESS, knowledge);
+                    sendMessage(LoadDataManager.LOAD_KNOWLEDGE_SUCCESS, knowledge);
                 }
-                sendMessage(LoadDataManger.END_FRESH, null);
+                sendMessage(LoadDataManager.END_FRESH, null);
             }
         });
     }
@@ -182,15 +179,15 @@ public class KnowledgeActivity extends AppCompatActivity {
         MyThreadPool.execute(new Runnable() {
             @Override
             public void run() {
-                sendMessage(LoadDataManger.START_LOADING, null);
+                sendMessage(LoadDataManager.START_LOADING, null);
                 List<KnowledgeText> knowledgeTexts = KnowledgePresenter.loadMore(knowledge);
                 if (!knowledgeTexts.isEmpty()) {
                     knowledge.getTexts().addAll(knowledgeTexts);
                     int currentPage = knowledge.getPage() + 1;
                     knowledge.setPage(currentPage);
-                    sendMessage(LoadDataManger.LOAD_KNOWLEDGE_SUCCESS, knowledge);
+                    sendMessage(LoadDataManager.LOAD_KNOWLEDGE_SUCCESS, knowledge);
                 }
-                sendMessage(LoadDataManger.END_LOADING, null);
+                sendMessage(LoadDataManager.END_LOADING, null);
             }
         });
     }

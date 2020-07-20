@@ -8,6 +8,7 @@ import com.example.playandroid.manager.TextKeyManager;
 import com.example.playandroid.net.MyService;
 import com.example.playandroid.net.OkHttpClient;
 import com.example.playandroid.net.Request;
+import com.example.playandroid.net.RequestBody;
 import com.example.playandroid.net.Response;
 
 import org.json.JSONArray;
@@ -25,9 +26,6 @@ public class TextModel {
         Request request = new Request.Builder().url(link).build();
         Response response = new OkHttpClient().newCall(request).execute();
         String data = response.body().toString();
-        if (textList.isEmpty()) Log.d("TAG", "getTexts: ----------params is empty-------");
-        else Log.d("TAG", "getTexts: --------params not null");
-        Log.d("TAG", "getTexts:------------------------ ");
         List<Text> texts = parseData(data);
         Iterator<Text> iterator = texts.iterator();
         // 检查本地是否有该条数据
@@ -42,11 +40,22 @@ public class TextModel {
             }
             if (isExist) iterator.remove();
         }
-        if (texts.isEmpty()) Log.d("TAG", "getTexts: ----return is empty-----");
 
         return texts;
 
 
+    }
+
+    public static List<Text> getSearchText(int page, String keyword) {
+        String url = MyService.getSearchLink(page);
+        Log.d("TAG", "getSearchText: " + url);
+        OkHttpClient client = new OkHttpClient();
+        RequestBody requestBody = new RequestBody.Builder().add("k", keyword).build();
+
+        Request request = new Request.Builder().url(url).post(requestBody).build();
+        Response response = client.newCall(request).execute();
+        String data = response.body().toString();
+        return parseData(data);
     }
 
 

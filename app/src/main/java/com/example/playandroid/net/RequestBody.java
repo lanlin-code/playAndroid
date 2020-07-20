@@ -7,7 +7,8 @@ public class RequestBody {
     private String data;
 
 
-    String getData() {
+
+    public String getData() {
         return data;
     }
 

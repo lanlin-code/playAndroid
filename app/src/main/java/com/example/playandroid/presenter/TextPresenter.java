@@ -14,5 +14,8 @@ public class TextPresenter {
         return TextModel.getTexts(page, textList);
     }
 
+    public static List<Text> getSearchText(int page, String keyword) {
+        return TextModel.getSearchText(page, keyword);
+    }
 
 }

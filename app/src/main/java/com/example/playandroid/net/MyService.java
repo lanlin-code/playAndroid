@@ -31,4 +31,12 @@ public class MyService {
     public static String getKnowledgeLink(int page, int cid) {
         return host + "article/list/" + page + getDataType() + "?cid=" + cid;
     }
+
+    public static String getSearchLink(int page) {
+        return host + "article/query/" + page + getDataType();
+    }
+
+    public static String getHotWordLink() {
+        return host + "/hotkey" + getDataType();
+    }
 }

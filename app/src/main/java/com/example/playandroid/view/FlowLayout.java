@@ -2,6 +2,7 @@ package com.example.playandroid.view;
 
 import android.content.Context;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -47,7 +48,7 @@ public class FlowLayout extends ViewGroup {
             MarginLayoutParams layoutParams = (MarginLayoutParams) child.getLayoutParams();
             int childWidth = child.getMeasuredWidth() + layoutParams.leftMargin + layoutParams.rightMargin;
             int childHeight = child.getMeasuredHeight() + layoutParams.topMargin + layoutParams.bottomMargin;
-            if (childWidth + lineWidth <= getWidth() - getPaddingStart() - getPaddingEnd()) {
+            if (childWidth + lineWidth <= getWidth() + getPaddingStart() + getPaddingEnd()) {
                 lineWidth += childWidth;
                 lineHeight = Math.max(lineHeight, childHeight);
             } else {
@@ -85,18 +86,21 @@ public class FlowLayout extends ViewGroup {
             if (lineWidth + childWidth <= getWidth() - getPaddingStart() - getPaddingEnd()) {
                 lineWidth += childWidth;
                 lineHeight = Math.max(lineHeight, childHeight);
+
                 lineViews.add(child);
             } else {
                 lineWidth = childWidth;
                 mLineHeights.add(lineHeight);
                 mAllViews.add(lineViews);
                 lineViews = new ArrayList<>();
+                lineViews.add(child);
             }
-            if (i == childCount - 1 && lineWidth <= getWidth() - getPaddingStart() - getPaddingEnd()) {
-                mLineHeights.add(lineHeight);
-                mAllViews.add(lineViews);
-            }
+
+
         }
+        mAllViews.add(lineViews);
+        mLineHeights.add(lineHeight);
+
 
         int line = mAllViews.size();
         int top = getPaddingTop();
@@ -105,11 +109,13 @@ public class FlowLayout extends ViewGroup {
         for (int i = 0; i < line; i ++) {
             List<View> lineView = mAllViews.get(i);
             int lineSize = lineView.size();
+
             for (int j = 0; j < lineSize; j ++) {
+
                 View child = lineView.get(j);
                 MarginLayoutParams layoutParams = (MarginLayoutParams) child.getLayoutParams();
                 int lc = left + layoutParams.leftMargin;
-                int tc = top + layoutParams.topMargin;
+                int tc = top + getPaddingTop();
                 int rc = lc + child.getMeasuredWidth();
                 int bc = tc + child.getMeasuredHeight();
 
@@ -128,4 +134,6 @@ public class FlowLayout extends ViewGroup {
     public LayoutParams generateLayoutParams(AttributeSet attrs) {
         return new MarginLayoutParams(getContext(), attrs);
     }
+
+
 }
