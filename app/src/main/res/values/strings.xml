@@ -9,5 +9,9 @@
     <string name="author">作者:</string>
     <string name="loading">正在加载…</string>
     <string name="search_hint">支持多个关键词，用空格隔开</string>
+    <string name="hot_search">热门搜索</string>
+    <string name="history_search">历史搜索</string>
+    <string name="not_history">暂无历史记录</string>
+    <string name="clear_histories">清除历史记录</string>
 
 </resources>

@@ -59,7 +59,45 @@ public class DBUtil {
             text.getLink(), text.getNiceDate(), text.getSuperChapterName(), text.getTitle(), 0, text.getId()});
         }
         database.close();
-        Log.d("TAG", "writeToLocal: --------write--------");
+    }
+
+    public static List<String> getHistory(Context context) {
+        final String key = "word";
+        List<String> histories = new ArrayList<>();
+        MyDatabaseHelper helper = new MyDatabaseHelper(context, MyDatabaseHelper.DATABASE_NAME,
+                null, MyDatabaseHelper.CURRENT_VERSION);
+        SQLiteDatabase database = helper.getReadableDatabase();
+        String sql = "select word from history where del = ? order by id";
+        Cursor cursor = database.rawQuery(sql, new String[] {"0"});
+        if (cursor.moveToFirst()) {
+            do {
+                String word = cursor.getString(cursor.getColumnIndex(key));
+                histories.add(word);
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        database.close();
+        return histories;
+    }
+
+    public static void writeToHistory(List<String> histories, Context context) {
+        MyDatabaseHelper helper = new MyDatabaseHelper(context, MyDatabaseHelper.DATABASE_NAME,
+                null, MyDatabaseHelper.CURRENT_VERSION);
+        SQLiteDatabase database = helper.getWritableDatabase();
+        String sql = "insert into history (word, del) values(?, ?)";
+        for (String s : histories) {
+            database.execSQL(sql, new Object[]{s, 0});
+        }
+        database.close();
+    }
+
+    public static void deleteHistories(Context context) {
+        MyDatabaseHelper helper = new MyDatabaseHelper(context, MyDatabaseHelper.DATABASE_NAME,
+                null, MyDatabaseHelper.CURRENT_VERSION);
+        SQLiteDatabase database = helper.getWritableDatabase();
+        String sql = "update history set del = ? where del = ?";
+        database.execSQL(sql, new Object[]{1, 0});
+        database.close();
     }
 
 }

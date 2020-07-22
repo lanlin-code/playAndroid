@@ -10,14 +10,18 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.example.playandroid.adapter.TextAdapter;
+import com.example.playandroid.database.DBUtil;
 import com.example.playandroid.entity.Text;
 import com.example.playandroid.manager.LoadDataManager;
 
@@ -40,7 +44,12 @@ public class SearchActivity extends AppCompatActivity implements View.OnClickLis
     private RelativeLayout loadLayout;
     private FlowLayout flowLayout;
     private List<Text> texts;
+    private List<String> histories;
+    private List<String> writeToLocal;
     private TextAdapter adapter;
+    private LinearLayout searchTextLayout;
+    private FlowLayout historiesLayout;
+    private Button clear;
 
     private Handler handler = new Handler(new Handler.Callback() {
         @Override
@@ -49,9 +58,11 @@ public class SearchActivity extends AppCompatActivity implements View.OnClickLis
                 case LoadDataManager.LOAD_TEXT_SUCCESS:
                     if (recyclerView.getVisibility() == View.GONE) {
                         recyclerView.setVisibility(View.VISIBLE);
-                        flowLayout.setVisibility(View.GONE);
+//                        flowLayout.setVisibility(View.GONE);
+                        searchTextLayout.setVisibility(View.GONE);
                     }
                     adapter.notifyDataSetChanged();
+                    break;
                 case LoadDataManager.START_LOADING:
                     loadLayout.setVisibility(View.VISIBLE);
                     break;
@@ -73,8 +84,14 @@ public class SearchActivity extends AppCompatActivity implements View.OnClickLis
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) actionBar.hide();
         hotWord = new ArrayList<>();
+        histories = new ArrayList<>();
+        writeToLocal = new ArrayList<>();
+        histories.addAll(DBUtil.getHistory(this));
         getHotWord();
         flowLayout = findViewById(R.id.flow_layout);
+        historiesLayout = findViewById(R.id.history_layout);
+        clear = findViewById(R.id.clear_histories_button);
+        clear.setOnClickListener(this);
         ImageButton back = findViewById(R.id.search_back);
         ImageButton search = findViewById(R.id.search_in_activity_search);
         editText = findViewById(R.id.search_text);
@@ -94,6 +111,7 @@ public class SearchActivity extends AppCompatActivity implements View.OnClickLis
                 if (dy > 0 && !recyclerView.canScrollVertically(1)) loadText();
             }
         });
+        searchTextLayout = findViewById(R.id.search_text_layout);
     }
 
 
@@ -114,11 +132,15 @@ public class SearchActivity extends AppCompatActivity implements View.OnClickLis
 
         if (!TextUtils.isEmpty(keyword)) {
             recyclerView.setVisibility(View.GONE);
-            flowLayout.setVisibility(View.VISIBLE);
+//            flowLayout.setVisibility(View.VISIBLE);
+            searchTextLayout.setVisibility(View.VISIBLE);
             keyword = null;
             currentPage = 0;
             removeAll();
-        } else finish();
+        } else {
+            if (!writeToLocal.isEmpty()) DBUtil.writeToHistory(writeToLocal, this);
+            finish();
+        }
 
     }
 
@@ -131,6 +153,12 @@ public class SearchActivity extends AppCompatActivity implements View.OnClickLis
             case R.id.search_in_activity_search:
                 keyword = editText.getText().toString();
                 loadText();
+                addHistory(keyword);
+                break;
+            case R.id.clear_histories_button:
+                removeAllHistories();
+                DBUtil.deleteHistories(this);
+                v.setVisibility(View.GONE);
                 break;
         }
     }
@@ -139,6 +167,17 @@ public class SearchActivity extends AppCompatActivity implements View.OnClickLis
         Message message = Message.obtain();
         message.what = code;
         handler.sendMessage(message);
+    }
+
+    private boolean check(String s) {
+        boolean exist = false;
+        for (String string : histories) {
+            if (string.equals(s)) {
+                exist = true;
+                break;
+            }
+        }
+        return exist;
     }
 
     private void initFlowLayout() {
@@ -151,11 +190,23 @@ public class SearchActivity extends AppCompatActivity implements View.OnClickLis
                 public void onClick(View v) {
                     keyword = textView.getText().toString();
                     loadText();
+                    addHistory(keyword);
                 }
             });
             flowLayout.addView(textView);
         }
+        loadHistoriesLayout();
+
     }
+
+
+    private void loadHistoriesLayout() {
+        for (String s : histories) {
+            addHistoriesView(s);
+        }
+        if (!histories.isEmpty()) clear.setVisibility(View.VISIBLE);
+    }
+
 
     private void loadText() {
         MyThreadPool.execute(new Runnable() {
@@ -178,5 +229,42 @@ public class SearchActivity extends AppCompatActivity implements View.OnClickLis
             iterator.remove();
         }
         adapter.notifyDataSetChanged();
+    }
+
+    private void addHistory(String s) {
+        if (!check(s)) {
+            histories.add(s);
+            writeToLocal.add(s);
+            if (clear.getVisibility() == View.GONE) clear.setVisibility(View.VISIBLE);
+            addHistoriesView(s);
+        }
+    }
+
+    private void addHistoriesView(String s) {
+        final TextView textView = (TextView) LayoutInflater.from(this).inflate(R.layout.textview_flowlayout_item,
+                historiesLayout, false);
+        textView.setText(s);
+        textView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                keyword = textView.getText().toString();
+                loadText();
+            }
+        });
+        historiesLayout.addView(textView);
+    }
+
+    private void removeAllHistories() {
+        Iterator<String> iterator = histories.iterator();
+        while (iterator.hasNext()) {
+            iterator.next();
+            iterator.remove();
+        }
+        iterator = writeToLocal.iterator();
+        while (iterator.hasNext()) {
+            iterator.next();
+            iterator.remove();
+        }
+        historiesLayout.removeAllViews();
     }
 }

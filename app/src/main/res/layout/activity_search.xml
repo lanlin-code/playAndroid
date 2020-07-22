@@ -40,11 +40,46 @@
 
     </LinearLayout>
 
-
-    <com.example.playandroid.view.FlowLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/flow_layout"/>
+        android:orientation="vertical"
+        android:id="@+id/search_text_layout">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/hot_search" />
+
+        <com.example.playandroid.view.FlowLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/flow_layout"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/history_search"/>
+
+        <com.example.playandroid.view.FlowLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/history_layout"/>
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/green"
+            android:text="@string/clear_histories"
+            android:textColor="@color/white"
+            android:id="@+id/clear_histories_button"
+            android:visibility="gone"/>
+
+
+
+    </LinearLayout>
+
+
 
     <androidx.recyclerview.widget.RecyclerView
         android:layout_width="match_parent"

@@ -49,7 +49,6 @@ public class Call {
             connection = (HttpURLConnection) new URL(mUrl).openConnection();
             connection.setRequestMethod("POST");
             outputStream = new BufferedWriter(new OutputStreamWriter(connection.getOutputStream()));
-            Log.d("TAG", "post: " + mPostData);
             outputStream.write(mPostData);
             outputStream.close();
             int requestCode = connection.getResponseCode();
