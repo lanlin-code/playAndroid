@@ -36,7 +36,6 @@ public class KnowledgeTextModel {
                 }
             }
         }
-        Log.d("TAG", "load: ");
         return knowledgeTexts;
     }
 

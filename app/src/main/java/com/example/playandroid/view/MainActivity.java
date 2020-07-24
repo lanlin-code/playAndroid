@@ -40,6 +40,8 @@ import com.example.playandroid.manager.LoadDataManager;
 import com.example.playandroid.presenter.CategoryPresenter;
 import com.example.playandroid.presenter.KnowledgeSystemPresenter;
 import com.example.playandroid.presenter.TextPresenter;
+import com.example.playandroid.service.AlarmService;
+import com.example.playandroid.util.CheckService;
 import com.example.playandroid.util.ThreadAdjustUtil;
 
 import java.util.ArrayList;
@@ -148,6 +150,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         search.setOnClickListener(this);
         replaceFragment(new HomeFragment());
         freshText();
+        if (!CheckService.isRunning(this, "com.example.playandroid.service.AlarmService")) {
+            Intent intent = new Intent(this, AlarmService.class);
+            startService(intent);
+        }
+
     }
 
     @Override

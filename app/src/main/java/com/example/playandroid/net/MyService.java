@@ -39,4 +39,8 @@ public class MyService {
     public static String getHotWordLink() {
         return host + "/hotkey" + getDataType();
     }
+
+    public static String getRecommendUrl() {
+        return host + "article/list/0/json";
+    }
 }

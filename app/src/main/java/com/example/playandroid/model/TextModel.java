@@ -38,7 +38,34 @@ public class TextModel {
     }
 
 
+    public static Text getRecommendText() {
+        String url = MyService.getRecommendUrl();
+        OkHttpClient client = new OkHttpClient();
+        Request request = new Request.Builder().url(url).build();
+        Response response = client.newCall(request).execute();
+        return parseRecommend(response.body().toString());
+    }
 
+    private static Text parseRecommend(String data) {
+        Text text = null;
+        try {
+            JSONObject jsonObject = new JSONObject(data);
+            String errorCode = jsonObject.getString("errorCode");
+            if (!MyService.isSuccess(errorCode)) return text;
+            JSONObject object = jsonObject.getJSONObject("data");
+            JSONArray array = object.getJSONArray("datas");
+            int position = (int) (array.length() * Math.random());
+            JSONObject recommend = array.getJSONObject(position);
+            text = new Text();
+            String title = recommend.getString(TextKeyManager.TITLE);
+            text.setTitle(title);
+            String link = recommend.getString(TextKeyManager.LINK);
+            text.setLink(link);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return text;
+    }
 
 
     /**
@@ -47,7 +74,7 @@ public class TextModel {
      * @return 如果网络请求返回的errorCode=1，返回一个空的List，否则返回一个含有多个text的List
      */
 
-     static List<Text> parseData(String data) {
+     private static List<Text> parseData(String data) {
         List<Text> texts = new ArrayList<>();
         try {
             JSONObject object = new JSONObject(data);
