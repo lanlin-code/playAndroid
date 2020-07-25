@@ -1,9 +1,8 @@
 package com.example.playandroid.model;
 
-import android.util.Log;
-
 import com.example.playandroid.entity.Knowledge;
 import com.example.playandroid.entity.KnowledgeText;
+import com.example.playandroid.manager.KnowledgeTextManager;
 import com.example.playandroid.net.MyService;
 import com.example.playandroid.net.OkHttpClient;
 import com.example.playandroid.net.Request;
@@ -43,26 +42,26 @@ public class KnowledgeTextModel {
         List<KnowledgeText> knowledgeTexts = new ArrayList<>();
         try {
             JSONObject jsonObject = new JSONObject(data);
-            String errorCode = jsonObject.getString("errorCode");
+            String errorCode = jsonObject.getString(KnowledgeTextManager.ERROR_CODE);
             if (MyService.isSuccess(errorCode)) {
-                JSONObject object = jsonObject.getJSONObject("data");
-                JSONArray array = object.getJSONArray("datas");
+                JSONObject object = jsonObject.getJSONObject(KnowledgeTextManager.DATA);
+                JSONArray array = object.getJSONArray(KnowledgeTextManager.DATAS);
                 for (int i = 0; i < array.length(); i ++) {
                     JSONObject item = array.getJSONObject(i);
                     KnowledgeText knowledgeText = new KnowledgeText();
-                    String author = item.getString("author");
+                    String author = item.getString(KnowledgeTextManager.AUTHOR);
                     knowledgeText.setAuthor(author);
-                    String chapterName = item.getString("chapterName");
+                    String chapterName = item.getString(KnowledgeTextManager.CHAPTER_NAME);
                     knowledgeText.setChapterName(chapterName);
-                    int id = item.getInt("id");
+                    int id = item.getInt(KnowledgeTextManager.ID);
                     knowledgeText.setId(id);
-                    String link = item.getString("link");
+                    String link = item.getString(KnowledgeTextManager.LINK);
                     knowledgeText.setLink(link);
-                    String niceDate = item.getString("niceDate");
+                    String niceDate = item.getString(KnowledgeTextManager.NICE_DATE);
                     knowledgeText.setNiceDate(niceDate);
-                    String superChapterName = item.getString("superChapterName");
+                    String superChapterName = item.getString(KnowledgeTextManager.SUPER_CHAPTER_NAME);
                     knowledgeText.setSuperChapterName(superChapterName);
-                    String title = item.getString("title");
+                    String title = item.getString(KnowledgeTextManager.TITLE);
                     knowledgeText.setTitle(title);
                     knowledgeTexts.add(knowledgeText);
                 }

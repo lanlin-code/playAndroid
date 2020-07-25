@@ -1,9 +1,8 @@
 package com.example.playandroid.model;
 
-import android.util.Log;
-
 import com.example.playandroid.entity.Category;
 import com.example.playandroid.entity.Item;
+import com.example.playandroid.manager.CategoryManager;
 import com.example.playandroid.net.MyService;
 import com.example.playandroid.net.OkHttpClient;
 import com.example.playandroid.net.Request;
@@ -54,15 +53,15 @@ public class CategoryModel {
         List<Category> categories = new ArrayList<>();
         try {
             JSONObject jsonObject = new JSONObject(data);
-            String errorCode = jsonObject.getString("errorCode");
+            String errorCode = jsonObject.getString(CategoryManager.ERROR_CODE);
             if (MyService.isSuccess(errorCode)) {
-                JSONArray array = jsonObject.getJSONArray("data");
+                JSONArray array = jsonObject.getJSONArray(CategoryManager.DATA);
                 for (int i = 0; i < array.length(); i ++) {
                     Category category = new Category();
                     JSONObject object = array.getJSONObject(i);
-                    int id = object.getInt("id");
+                    int id = object.getInt(CategoryManager.ID);
                     category.setId(id);
-                    String name = object.getString("name");
+                    String name = object.getString(CategoryManager.NAME);
                     category.setName(name);
                     categories.add(category);
                 }

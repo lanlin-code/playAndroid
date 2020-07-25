@@ -1,8 +1,8 @@
 package com.example.playandroid.model;
 
-import android.util.Log;
 
 import com.example.playandroid.entity.Item;
+import com.example.playandroid.manager.ItemManager;
 import com.example.playandroid.net.MyService;
 import com.example.playandroid.net.OkHttpClient;
 import com.example.playandroid.net.Request;
@@ -15,7 +15,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ItemModel {
+class ItemModel {
 
     static List<Item> getItems(int page, int cid) {
         String url = MyService.getItemsLink(page, cid);
@@ -30,26 +30,26 @@ public class ItemModel {
         List<Item> itemList = new ArrayList<>();
         try {
             JSONObject jsonObject = new JSONObject(data);
-            String code = jsonObject.getString("errorCode");
+            String code = jsonObject.getString(ItemManager.ERROR_CODE);
             if (MyService.isSuccess(code)) {
-                JSONObject object = jsonObject.getJSONObject("data");
-                JSONArray array = object.getJSONArray("datas");
+                JSONObject object = jsonObject.getJSONObject(ItemManager.DATA);
+                JSONArray array = object.getJSONArray(ItemManager.DATAS);
                 for (int i = 0; i < array.length(); i ++) {
                     JSONObject itemData = array.getJSONObject(i);
                     Item item = new Item();
-                    String author = itemData.getString("author");
+                    String author = itemData.getString(ItemManager.AUTHOR);
                     item.setAuthor(author);
-                    String description = itemData.getString("desc");
+                    String description = itemData.getString(ItemManager.DESC);
                     item.setDescription(description);
-                    String picUrl = itemData.getString("envelopePic");
+                    String picUrl = itemData.getString(ItemManager.ENVELOP_PIC);
                     item.setPictureLink(picUrl);
-                    String link = itemData.getString("link");
+                    String link = itemData.getString(ItemManager.LINK);
                     item.setLink(link);
-                    String niceDate = itemData.getString("niceDate");
+                    String niceDate = itemData.getString(ItemManager.NICE_DATE);
                     item.setNiceDate(niceDate);
-                    String title = itemData.getString("title");
+                    String title = itemData.getString(ItemManager.TITLE);
                     item.setTitle(title);
-                    int id = itemData.getInt("id");
+                    int id = itemData.getInt(ItemManager.ID);
                     item.setId(id);
                     itemList.add(item);
                 }

@@ -50,10 +50,10 @@ public class TextModel {
         Text text = null;
         try {
             JSONObject jsonObject = new JSONObject(data);
-            String errorCode = jsonObject.getString("errorCode");
+            String errorCode = jsonObject.getString(TextKeyManager.ERROR_CODE);
             if (!MyService.isSuccess(errorCode)) return text;
-            JSONObject object = jsonObject.getJSONObject("data");
-            JSONArray array = object.getJSONArray("datas");
+            JSONObject object = jsonObject.getJSONObject(TextKeyManager.DATA);
+            JSONArray array = object.getJSONArray(TextKeyManager.DATAS);
             int position = (int) (array.length() * Math.random());
             JSONObject recommend = array.getJSONObject(position);
             text = new Text();
@@ -78,10 +78,10 @@ public class TextModel {
         List<Text> texts = new ArrayList<>();
         try {
             JSONObject object = new JSONObject(data);
-            String code = object.getString("errorCode");
+            String code = object.getString(TextKeyManager.ERROR_CODE);
             if (!MyService.isSuccess(code)) return texts;
-            JSONObject dataObject = object.getJSONObject("data");
-            JSONArray array = dataObject.getJSONArray("datas");
+            JSONObject dataObject = object.getJSONObject(TextKeyManager.DATA);
+            JSONArray array = dataObject.getJSONArray(TextKeyManager.DATAS);
             for (int i = 0; i < array.length(); i ++) {
                 Text text = new Text();
                 JSONObject jsonObject = array.getJSONObject(i);

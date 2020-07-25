@@ -60,7 +60,8 @@ public class AlarmService extends Service {
             notificationManager.createNotificationChannel(channel);
             notification = new NotificationCompat.Builder(this, "channel")
                     .setContentTitle(text.getTitle()).setWhen(System.currentTimeMillis()).
-                            setContentIntent(pendingIntent).setSmallIcon(R.drawable.ic_launcher_foreground).build();
+                            setContentIntent(pendingIntent).setSmallIcon(R.drawable.ic_launcher_foreground)
+                    .setAutoCancel(true).build();
         } else notification = new NotificationCompat.Builder(this).
                 setContentTitle(text.getTitle()).setSmallIcon(R.drawable.ic_launcher_foreground)
                 .setWhen(System.currentTimeMillis()).setContentIntent(pendingIntent).build();

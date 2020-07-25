@@ -2,6 +2,7 @@ package com.example.playandroid.model;
 
 import android.util.Log;
 
+import com.example.playandroid.manager.HotWordManager;
 import com.example.playandroid.net.MyService;
 import com.example.playandroid.net.OkHttpClient;
 import com.example.playandroid.net.Request;
@@ -28,10 +29,12 @@ public class HotWordModel {
         List<String> hotWord = new ArrayList<>();
         try {
             JSONObject jsonObject = new JSONObject(data);
-            JSONArray array = jsonObject.getJSONArray("data");
+            String errorCode = jsonObject.getString(HotWordManager.ERROR_CODE);
+            if (!MyService.isSuccess(errorCode)) return hotWord;
+            JSONArray array = jsonObject.getJSONArray(HotWordManager.DATA);
             for (int i = 0; i < array.length(); i ++) {
                 JSONObject object = array.getJSONObject(i);
-                String name = object.getString("name");
+                String name = object.getString(HotWordManager.NAME);
                 hotWord.add(name);
             }
         } catch (JSONException e) {
