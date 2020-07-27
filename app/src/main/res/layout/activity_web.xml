@@ -5,13 +5,13 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="50dp"
         android:orientation="horizontal"
         android:background="@color/green">
 
         <ImageButton
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             android:id="@+id/web_back"
             android:background="@color/green"
@@ -19,10 +19,11 @@
 
         <TextView
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:textSize="20sp"
             android:background="@color/green"
             android:textColor="@color/white"
+            android:gravity="center"
             android:id="@+id/web_title"
             android:maxLines="1"
             android:layout_weight="4"/>
@@ -30,7 +31,7 @@
 
         <ImageButton
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             android:background="@color/green"
             android:id="@+id/more_operate"
