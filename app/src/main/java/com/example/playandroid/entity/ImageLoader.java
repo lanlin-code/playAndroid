@@ -60,7 +60,7 @@ public class ImageLoader {
         // 如果本地有则加载进内存
         if (file.exists()) {
             Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
-            mCache.put(url, bitmap);
+            if (bitmap != null) mCache.put(url, bitmap);
             return bitmap;
         }
         return null;
@@ -107,8 +107,11 @@ public class ImageLoader {
                 connection = (HttpURLConnection) link.openConnection();
                 is = connection.getInputStream();
                 final Bitmap bitmap = BitmapFactory.decodeStream(is);
-                saveToLocal(bitmap, url, imageView.getContext());
-                mCache.put(url, bitmap);
+                if (bitmap != null) {
+                    saveToLocal(bitmap, url, imageView.getContext());
+                    mCache.put(url, bitmap);
+                }
+
                 String current = mTags.get(imageView);
                 if (url.equals(current)) {
                     ThreadAdjustUtil.post(new Runnable() {
@@ -136,7 +139,7 @@ public class ImageLoader {
          * 越小。
          *
          */
-        if (bitmap.compress(Bitmap.CompressFormat.JPEG, 80, outputStream)) {
+        if (bitmap != null && bitmap.compress(Bitmap.CompressFormat.JPEG, 80, outputStream)) {
             outputStream.flush();
             outputStream.close();
         }
