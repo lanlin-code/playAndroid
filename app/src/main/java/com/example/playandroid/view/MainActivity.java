@@ -293,7 +293,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             if (dy < 0) {
                                 showTopAndBottomLayout();
                                 if (!recyclerView.canScrollVertically(-1)) freshProjectData(category);
-                            } else {
+                            } else if (dy > 0){
                                 hideTopAndBottomLayout();
                                 if (!recyclerView.canScrollVertically(1)) loadMoreProject(category);
                             }
